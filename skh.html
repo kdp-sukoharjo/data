@@ -1,0 +1,2422 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kamus Data Pemilih - Portal Informasi Data Pemilih</title>
+
+    <!-- Memuat Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Memuat Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Memuat Chart.js untuk Grafik Interaktif -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        /* Kustomisasi Scrollbar agar rapi */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Gaya dan animasi interaktif untuk Peta SVG Kabupaten Sukoharjo */
+        .map-polygon {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .map-polygon:hover {
+            filter: brightness(1.08);
+            stroke-width: 2.5px;
+        }
+        .map-polygon-active {
+            stroke: #0f172a !important;
+            stroke-width: 3.2px !important;
+            filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.28)) brightness(1.06);
+        }
+        .desa-cell {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .desa-cell:hover {
+            stroke: #0f172a;
+            stroke-width: 1.4px;
+            filter: brightness(1.12);
+        }
+        .desa-cell-active {
+            stroke: #0f172a !important;
+            stroke-width: 2.2px !important;
+            filter: drop-shadow(0 0 6px rgba(15, 23, 42, 0.55));
+        }
+        @keyframes pulseFocus {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.78; }
+        }
+        .pulse-highlight {
+            animation: pulseFocus 1.8s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- HEADER / BANNER UTAMA -->
+    <header class="bg-gradient-to-r from-red-800 via-red-700 to-slate-900 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex items-start sm:items-center gap-3.5">
+                    <!-- Ikon Portal Data -->
+                    <div class="bg-white/15 p-3 rounded-2xl border border-white/20 shrink-0">
+                        <svg class="w-7 h-7 text-amber-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-400/20 text-amber-200 border border-amber-300/30 mb-1">
+                            <span>Kabupaten Sukoharjo &bull; Jawa Tengah</span>
+                        </div>
+                        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight">
+                            Kamus Data Pemilih - Portal Informasi Data Pemilih
+                        </h1>
+                    </div>
+                </div>
+
+                <!-- Tombol Edit Data & Info Cakupan Wilayah -->
+                <div class="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
+                    <button type="button" onclick="bukaModalEditData()" class="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl shadow-xs transition cursor-pointer">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                        <span>Edit / Update Angka</span>
+                    </button>
+                    <div class="flex items-center gap-3 bg-black/25 px-4 py-2 rounded-xl border border-white/10 text-xs sm:text-sm">
+                        <div>
+                            <span class="text-red-200 block text-[11px] uppercase tracking-wider font-semibold">Cakupan Wilayah</span>
+                            <span class="font-bold text-white">12 Kecamatan &bull; 167 Desa/Kelurahan</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- KONTEN UTAMA -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- BAGIAN 1: NAVIGASI 4 MENU UTAMA -->
+        <section aria-label="Menu Utama Portal" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-2 sm:p-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2">
+                <!-- Menu 1: Pilkada Tahun 2024 -->
+                <button id="tab-pilkada2024" onclick="pilihMenu('pilkada2024')" class="menu-tab flex items-center gap-3 p-3.5 rounded-xl text-left transition-all duration-200 bg-red-700 text-white shadow-sm cursor-pointer">
+                    <span class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-extrabold text-sm shrink-0">1</span>
+                    <div>
+                        <div class="font-bold text-sm sm:text-base leading-tight">Pilkada Tahun 2024</div>
+                        <div class="text-xs opacity-85 mt-0.5">Jumlah pemilih per wilayah</div>
+                    </div>
+                </button>
+
+                <!-- Menu 2: Pilpres Tahun 2024 -->
+                <button id="tab-pilpres2024" onclick="pilihMenu('pilpres2024')" class="menu-tab flex items-center gap-3 p-3.5 rounded-xl text-left transition-all duration-200 bg-slate-100 hover:bg-slate-200/80 text-slate-700 cursor-pointer">
+                    <span class="w-8 h-8 rounded-lg bg-slate-300/70 text-slate-800 flex items-center justify-center font-extrabold text-sm shrink-0">2</span>
+                    <div>
+                        <div class="font-bold text-sm sm:text-base leading-tight">Pilpres Tahun 2024</div>
+                        <div class="text-xs opacity-80 mt-0.5">Jumlah pemilih per wilayah</div>
+                    </div>
+                </button>
+
+                <!-- Menu 3: Pemutakhiran Data Pemilih Berkelanjutan -->
+                <button id="tab-pdpb" onclick="pilihMenu('pdpb')" class="menu-tab flex items-center gap-3 p-3.5 rounded-xl text-left transition-all duration-200 bg-slate-100 hover:bg-slate-200/80 text-slate-700 cursor-pointer">
+                    <span class="w-8 h-8 rounded-lg bg-slate-300/70 text-slate-800 flex items-center justify-center font-extrabold text-sm shrink-0">3</span>
+                    <div>
+                        <div class="font-bold text-sm sm:text-base leading-tight">Pemutakhiran Data Pemilih Berkelanjutan</div>
+                        <div class="text-xs opacity-80 mt-0.5">Tahun 2025 &amp; 2026 (TW 1–4)</div>
+                    </div>
+                </button>
+
+                <!-- Menu 4: Opini seputar Data dan Informasi -->
+                <button id="tab-opini" onclick="pilihMenu('opini')" class="menu-tab flex items-center gap-3 p-3.5 rounded-xl text-left transition-all duration-200 bg-slate-100 hover:bg-slate-200/80 text-slate-700 cursor-pointer">
+                    <span class="w-8 h-8 rounded-lg bg-slate-300/70 text-slate-800 flex items-center justify-center font-extrabold text-sm shrink-0">4</span>
+                    <div>
+                        <div class="font-bold text-sm sm:text-base leading-tight">Opini seputar Data dan Informasi</div>
+                        <div class="text-xs opacity-80 mt-0.5">Kajian, catatan &amp; publikasi opini</div>
+                    </div>
+                </button>
+            </div>
+
+            <!-- SUB-MENU KHUSUS MENU 3 (TAHUN 2025/2026 & TRIWULAN 1, 2, 3, 4) -->
+            <div id="panel-sub-pdpb" class="hidden mt-3 pt-3 border-t border-slate-200 bg-amber-50/70 rounded-xl p-3.5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-2 text-amber-900">
+                        <svg class="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <span class="text-xs sm:text-sm font-bold">Periode Pemutakhiran Data Pemilih Berkelanjutan:</span>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Pilihan Tahun -->
+                        <div class="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-amber-200 shadow-2xs">
+                            <span class="text-xs font-semibold text-slate-500 px-2">Tahun:</span>
+                            <button id="btn-tahun-2025" onclick="pilihTahunPDPB('2025')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-600 text-white transition cursor-pointer">2025</button>
+                            <button id="btn-tahun-2026" onclick="pilihTahunPDPB('2026')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-amber-100 transition cursor-pointer">2026</button>
+                        </div>
+
+                        <!-- Pilihan Triwulan 1, 2, 3, 4 -->
+                        <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-amber-200 shadow-2xs">
+                            <span class="text-xs font-semibold text-slate-500 px-2">Triwulan:</span>
+                            <button id="btn-tw-1" onclick="pilihTriwulanPDPB(1)" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-600 text-white transition cursor-pointer">TW 1</button>
+                            <button id="btn-tw-2" onclick="pilihTriwulanPDPB(2)" class="px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-amber-100 transition cursor-pointer">TW 2</button>
+                            <button id="btn-tw-3" onclick="pilihTriwulanPDPB(3)" class="px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-amber-100 transition cursor-pointer">TW 3</button>
+                            <button id="btn-tw-4" onclick="pilihTriwulanPDPB(4)" class="px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-amber-100 transition cursor-pointer">TW 4</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- KONTAINER MENU DATA PEMILIH (MENU 1, 2, DAN 3) -->
+        <div id="kontainer-data-pemilih" class="space-y-6">
+
+            <!-- BAGIAN 2: KONTROL FILTER TINGKAT WILAYAH (KECAMATAN VS DESA/KELURAHAN) -->
+            <section aria-label="Filter Tingkat Wilayah" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+
+                    <!-- 1. Sakelar Tingkat Wilayah -->
+                    <div class="lg:col-span-5">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                            1. Pilih Tingkat Tampilan Wilayah
+                        </label>
+                        <div class="grid grid-cols-2 gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+                            <button id="btn-tingkat-kecamatan" onclick="pilihTingkatWilayah('kecamatan')" class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold bg-white text-red-700 shadow-xs transition cursor-pointer">
+                                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                                <span>Per Kecamatan (12)</span>
+                            </button>
+                            <button id="btn-tingkat-desa" onclick="pilihTingkatWilayah('desa')" class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer">
+                                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <span>Per Desa / Kel (167)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Dropdown Filter Kecamatan -->
+                    <div class="lg:col-span-4">
+                        <label for="filter-kecamatan" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                            2. Filter Wilayah Kecamatan
+                        </label>
+                        <select id="filter-kecamatan" onchange="pilihKecamatanDariDropdown(this.value)" class="w-full bg-white border border-slate-300 text-slate-800 text-sm font-medium rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none cursor-pointer">
+                            <option value="ALL">Semua Kecamatan (12 Kecamatan)</option>
+                        </select>
+                    </div>
+
+                    <!-- 3. Pencarian Cepat -->
+                    <div class="lg:col-span-3">
+                        <label for="input-pencarian" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                            3. Cari Nama Wilayah
+                        </label>
+                        <div class="relative">
+                            <input type="text" id="input-pencarian" oninput="perbaruiTampilan()" placeholder="Cari kecamatan / desa..." class="w-full bg-white border border-slate-300 text-slate-800 text-sm rounded-xl pl-9 pr-8 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-red-600 outline-none">
+                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            <button id="btn-clear-search" onclick="hapusPencarian()" class="hidden absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer" title="Hapus pencarian">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- BAGIAN 3: PETA WILAYAH INTERAKTIF KABUPATEN SUKOHARJO (SINKRON DUA ARAH) -->
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-red-100 text-red-700">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                                </svg>
+                            </span>
+                            <h2 class="text-base sm:text-lg font-bold text-slate-900">
+                                Peta Wilayah Kabupaten Sukoharjo
+                            </h2>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">
+                            Klik poligon kecamatan atau zona desa/kelurahan pada peta untuk menyaring angka, grafik, dan tabel — atau klik nama wilayah pada daftar/tabel untuk menyorot peta.
+                        </p>
+                    </div>
+
+                    <!-- Kontrol Mode Warna & Reset Peta -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                            <button id="btn-warna-distingtif" onclick="ubahModeWarnaPeta('distingtif')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer bg-white text-slate-900 shadow-xs">
+                                Warna Tiap Wilayah
+                            </button>
+                            <button id="btn-warna-gradasi" onclick="ubahModeWarnaPeta('gradasi')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900">
+                                Gradasi Jumlah Pemilih
+                            </button>
+                        </div>
+
+                        <button id="btn-reset-wilayah" onclick="resetPilihanWilayah()" class="hidden inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition cursor-pointer shadow-xs">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            <span>Reset Pilihan Wilayah</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grid Konten Peta -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-5 items-start">
+
+                    <!-- Kolom Kanvas Peta Interaktif SVG -->
+                    <div class="lg:col-span-7 bg-slate-100/80 rounded-2xl border border-slate-200 p-3 sm:p-4 relative">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <span id="badge-mode-peta" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white text-slate-700 border border-slate-200 shadow-2xs">
+                                <span class="w-2 h-2 rounded-full bg-red-600"></span>
+                                <span>Tampilan: 12 Batas Kecamatan</span>
+                            </span>
+                            <span class="text-[11px] text-slate-500 font-medium">
+                                Arah Utara &uarr; &bull; Klik wilayah untuk sinkronisasi
+                            </span>
+                        </div>
+
+                        <div class="w-full overflow-hidden rounded-xl bg-sky-50/70 border border-slate-200/80">
+                            <svg id="svg-peta-sukoharjo" viewBox="0 0 640 600" class="w-full h-auto max-h-[470px] select-none" role="img" aria-label="Peta Interaktif 12 Kecamatan dan 167 Desa/Kelurahan Kabupaten Sukoharjo">
+                                <defs>
+                                    <pattern id="grid-peta" width="32" height="32" patternUnits="userSpaceOnUse">
+                                        <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#e2e8f0" stroke-width="0.7" />
+                                    </pattern>
+                                </defs>
+                                <rect width="640" height="600" fill="url(#grid-peta)" />
+
+                                <!-- Kompas Arah Mata Angin -->
+                                <g transform="translate(585, 48)">
+                                    <circle cx="0" cy="0" r="20" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+                                    <polygon points="0,-13 4,2 0,-1 -4,2" fill="#dc2626" />
+                                    <polygon points="0,13 4,-2 0,1 -4,-2" fill="#64748b" />
+                                    <text x="0" y="-23" text-anchor="middle" font-size="9" font-weight="700" fill="#334155">U</text>
+                                </g>
+
+                                <!-- Layer 1: Poligon 12 Kecamatan -->
+                                <g id="layer-poligon-kecamatan"></g>
+
+                                <!-- Layer 2: Zona / Sel Spasial 167 Desa & Kelurahan -->
+                                <g id="layer-sel-desa"></g>
+
+                                <!-- Layer 3: Label Nama Kecamatan -->
+                                <g id="layer-label-kecamatan" class="pointer-events-none"></g>
+                            </svg>
+                        </div>
+
+                        <!-- Legenda Peta -->
+                        <div id="legenda-peta" class="mt-3 pt-2.5 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600"></div>
+                    </div>
+
+                    <!-- Kolom Kartu Info Wilayah Terpilih & Daftar Cepat Kecamatan -->
+                    <div class="lg:col-span-5 space-y-4">
+                        <div id="kartu-detail-wilayah" class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl p-5 shadow-md border border-slate-700">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <span id="detail-badge-tingkat" class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                                        Seluruh Wilayah Kabupaten
+                                    </span>
+                                    <h3 id="detail-nama-wilayah" class="text-lg sm:text-xl font-extrabold mt-1.5 tracking-tight">
+                                        Kabupaten Sukoharjo
+                                    </h3>
+                                    <p id="detail-sub-wilayah" class="text-xs text-slate-300 mt-0.5">
+                                        12 Kecamatan &bull; 167 Desa/Kelurahan
+                                    </p>
+                                </div>
+                                <div id="detail-indikator-warna" class="w-9 h-9 rounded-xl border-2 border-white/50 shadow-inner shrink-0 bg-red-600"></div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-2.5 mt-4 pt-4 border-t border-white/15">
+                                <div class="bg-white/10 rounded-xl p-2.5">
+                                    <p class="text-[10px] uppercase tracking-wider text-slate-300 font-semibold">Laki-Laki</p>
+                                    <p id="detail-laki" class="text-sm sm:text-base font-bold text-sky-300 mt-0.5 tabular-nums">0</p>
+                                </div>
+                                <div class="bg-white/10 rounded-xl p-2.5">
+                                    <p class="text-[10px] uppercase tracking-wider text-slate-300 font-semibold">Perempuan</p>
+                                    <p id="detail-perempuan" class="text-sm sm:text-base font-bold text-rose-300 mt-0.5 tabular-nums">0</p>
+                                </div>
+                                <div class="bg-white/15 rounded-xl p-2.5 border border-amber-400/30">
+                                    <p class="text-[10px] uppercase tracking-wider text-amber-200 font-semibold">Total Pemilih</p>
+                                    <p id="detail-total" class="text-sm sm:text-base font-extrabold text-white mt-0.5 tabular-nums">0</p>
+                                </div>
+                            </div>
+
+                            <p id="detail-petunjuk-interaksi" class="text-[11px] text-slate-300 mt-3 flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5"></path>
+                                </svg>
+                                <span>Klik wilayah di peta, pilih tombol kecamatan di bawah, atau aktifkan mode Per Desa/Kel untuk warna tiap desa.</span>
+                            </p>
+                        </div>
+
+                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                            <div class="flex items-center justify-between mb-2.5">
+                                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                    Pilih Cepat Kecamatan (Warna Peta)
+                                </span>
+                                <span class="text-[11px] text-slate-500">12 Wilayah</span>
+                            </div>
+                            <div id="grid-chip-kecamatan" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- BAGIAN 4: KARTU RINGKASAN ANGKA (KPI CARDS) -->
+            <section aria-label="Ringkasan Jumlah Pemilih" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Pemilih Terdaftar</span>
+                        <span class="p-2 bg-red-50 text-red-700 rounded-xl">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </span>
+                    </div>
+                    <div id="kpi-total" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">0</div>
+                    <div id="kpi-kategori-label" class="text-xs font-medium text-red-700 mt-1.5">Pilkada Tahun 2024</div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Pemilih Laki-Laki</span>
+                        <span class="p-2 bg-blue-50 text-blue-700 rounded-xl">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </span>
+                    </div>
+                    <div id="kpi-laki" class="text-2xl sm:text-3xl font-extrabold text-blue-700 mt-2 tabular-nums">0</div>
+                    <div class="text-xs text-slate-500 mt-1.5">
+                        Proporsi: <span id="kpi-laki-persen" class="font-bold text-slate-700">0%</span> dari total
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Pemilih Perempuan</span>
+                        <span class="p-2 bg-rose-50 text-rose-700 rounded-xl">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </span>
+                    </div>
+                    <div id="kpi-perempuan" class="text-2xl sm:text-3xl font-extrabold text-rose-700 mt-2 tabular-nums">0</div>
+                    <div class="text-xs text-slate-500 mt-1.5">
+                        Proporsi: <span id="kpi-perempuan-persen" class="font-bold text-slate-700">0%</span> dari total
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Wilayah Ditampilkan</span>
+                        <span class="p-2 bg-emerald-50 text-emerald-700 rounded-xl">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                            </svg>
+                        </span>
+                    </div>
+                    <div id="kpi-wilayah-jumlah" class="text-2xl sm:text-3xl font-extrabold text-emerald-700 mt-2 tabular-nums">12</div>
+                    <div id="kpi-wilayah-label" class="text-xs text-slate-500 mt-1.5">Kecamatan di Kab. Sukoharjo</div>
+                </div>
+            </section>
+
+            <!-- BAGIAN 5: GRAFIK PERBANDINGAN PEMILIH PER WILAYAH -->
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                    <div>
+                        <h2 id="judul-grafik" class="text-base sm:text-lg font-bold text-slate-900">
+                            Grafik Sebaran Pemilih Per Kecamatan
+                        </h2>
+                        <p id="subjudul-grafik" class="text-xs text-slate-500">
+                            Perbandingan jumlah pemilih laki-laki dan perempuan berdasarkan wilayah terpilih
+                        </p>
+                    </div>
+                    <span id="badge-info-grafik" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 self-start sm:self-auto">
+                        Menampilkan 12 Wilayah
+                    </span>
+                </div>
+
+                <div class="relative w-full h-72 sm:h-80">
+                    <canvas id="grafikPemilih"></canvas>
+                </div>
+            </section>
+
+            <!-- BAGIAN 6: TABEL DATA RINCI & EKSPOR/IMPORT CSV -->
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-4 sm:p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h2 id="judul-tabel" class="text-base sm:text-lg font-bold text-slate-900">
+                            Rincian Data Pemilih Tingkat Kecamatan
+                        </h2>
+                        <p id="subjudul-tabel" class="text-xs text-slate-500 mt-0.5">
+                            Klik baris wilayah pada tabel untuk menyorot lokasi dan warnanya pada peta di atas
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <select id="urutkan-data" onchange="perbaruiTampilan()" class="bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-red-600 cursor-pointer">
+                            <option value="nama_asc">Urutkan: Nama Wilayah (A–Z)</option>
+                            <option value="total_desc">Urutkan: Pemilih Terbanyak</option>
+                            <option value="total_asc">Urutkan: Pemilih Tersedikit</option>
+                        </select>
+
+                        <button type="button" onclick="unduhCSV()" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs transition cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                            <span>Unduh CSV (Excel)</span>
+                        </button>
+
+                        <label class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 text-xs font-bold px-3.5 py-2 rounded-xl transition cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                            </svg>
+                            <span>Import CSV</span>
+                            <input type="file" id="input-import-csv" accept=".csv,text/csv" onchange="imporCSV(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto max-h-[520px]">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider sticky top-0 z-10 border-b border-slate-200">
+                            <tr>
+                                <th class="py-3.5 px-4 font-bold w-14 text-center">No</th>
+                                <th class="py-3.5 px-4 font-bold">Kecamatan</th>
+                                <th id="kolom-desa-header" class="py-3.5 px-4 font-bold hidden">Desa / Kelurahan</th>
+                                <th class="py-3.5 px-4 font-bold text-right text-blue-800">Laki-Laki</th>
+                                <th class="py-3.5 px-4 font-bold text-right text-rose-800">Perempuan</th>
+                                <th class="py-3.5 px-4 font-bold text-right text-slate-900">Total Pemilih</th>
+                                <th class="py-3.5 px-4 font-bold text-right hidden sm:table-cell">Proporsi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="isi-tabel-pemilih" class="divide-y divide-slate-200 text-sm"></tbody>
+                        <tfoot class="bg-slate-900 text-white font-bold text-sm sticky bottom-0">
+                            <tr>
+                                <td id="footer-colspan" colspan="2" class="py-3.5 px-4 text-right uppercase text-xs tracking-wider text-slate-300">
+                                    Total Keseluruhan
+                                </td>
+                                <td id="footer-laki" class="py-3.5 px-4 text-right tabular-nums text-blue-300">0</td>
+                                <td id="footer-perempuan" class="py-3.5 px-4 text-right tabular-nums text-rose-300">0</td>
+                                <td id="footer-total" class="py-3.5 px-4 text-right tabular-nums text-amber-300">0</td>
+                                <td class="py-3.5 px-4 text-right hidden sm:table-cell text-xs text-slate-300">100%</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- KONTAINER MENU 4: OPINI SEPUTAR DATA DAN INFORMASI -->
+        <section id="kontainer-opini" class="hidden space-y-6" aria-label="Opini seputar Data dan Informasi">
+            <!-- Header & Kontrol Filter Opini -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+                    <div>
+                        <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200 mb-1">
+                            Menu 4 &bull; Ruang Diskusi &amp; Kajian
+                        </span>
+                        <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">
+                            Opini seputar Data dan Informasi
+                        </h2>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                            Kumpulan catatan opini, analisis akurasi data pemilih, dan keterbukaan informasi berbasis wilayah Kabupaten Sukoharjo.
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" onclick="unduhOpiniJSON()" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 text-xs font-bold px-3.5 py-2 rounded-xl transition cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                            <span>Ekspor JSON</span>
+                        </button>
+
+                        <label class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 text-xs font-bold px-3.5 py-2 rounded-xl transition cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                            </svg>
+                            <span>Impor JSON</span>
+                            <input type="file" id="input-import-opini-json" accept=".json,application/json" onchange="imporOpiniJSON(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Filter Topik & Pencarian Opini -->
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                    <div class="md:col-span-8 flex flex-wrap items-center gap-1.5" id="filter-topik-opini">
+                        <button type="button" data-topik="ALL" onclick="pilihTopikOpini('ALL')" class="btn-topik-opini px-3 py-1.5 rounded-xl text-xs font-bold bg-red-700 text-white transition cursor-pointer">
+                            Semua Topik
+                        </button>
+                        <button type="button" data-topik="Akurasi Data Pemilih" onclick="pilihTopikOpini('Akurasi Data Pemilih')" class="btn-topik-opini px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer">
+                            Akurasi Data Pemilih
+                        </button>
+                        <button type="button" data-topik="Pemutakhiran Berkelanjutan" onclick="pilihTopikOpini('Pemutakhiran Berkelanjutan')" class="btn-topik-opini px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer">
+                            Pemutakhiran Berkelanjutan
+                        </button>
+                        <button type="button" data-topik="Keterbukaan Informasi" onclick="pilihTopikOpini('Keterbukaan Informasi')" class="btn-topik-opini px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer">
+                            Keterbukaan Informasi
+                        </button>
+                    </div>
+                    <div class="md:col-span-4 relative">
+                        <input type="text" id="cari-opini" oninput="renderDaftarOpini()" placeholder="Cari judul, penulis, atau isi opini..." class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs sm:text-sm rounded-xl pl-9 pr-3 py-2 focus:ring-2 focus:ring-red-600 outline-none">
+                        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid Daftar Opini & Pembaca Lengkap -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <!-- Daftar Opini Bertopik -->
+                <div id="daftar-kartu-opini" class="lg:col-span-7 space-y-4"></div>
+
+                <!-- Panel Baca Lengkap Opini Terpilih -->
+                <div class="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 lg:sticky lg:top-6">
+                    <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-200">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Baca Opini Lengkap</span>
+                        <span id="baca-opini-topik" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900">-</span>
+                    </div>
+                    <h3 id="baca-opini-judul" class="text-base sm:text-lg font-extrabold text-slate-900 mt-3 leading-snug">
+                        Pilih salah satu opini di samping
+                    </h3>
+                    <div id="baca-opini-meta" class="text-xs text-slate-500 mt-1.5 flex flex-wrap items-center gap-2"></div>
+                    <p id="baca-opini-ringkasan" class="text-xs sm:text-sm font-semibold text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200 mt-3"></p>
+                    <div id="baca-opini-isi" class="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-3 mt-4 whitespace-pre-line"></div>
+                </div>
+            </div>
+
+            <!-- Formulir Tulis Opini Baru -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-200 mb-4">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Tulis Opini Baru</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Opini baru disimpan otomatis di penyimpanan lokal browser (localStorage) dan dapat diekspor ke JSON.
+                        </p>
+                    </div>
+                    <button type="button" onclick="resetOpiniBawaan()" class="text-xs font-semibold text-slate-600 hover:text-red-700 underline self-start sm:self-auto cursor-pointer">
+                        Reset ke Opini Bawaan
+                    </button>
+                </div>
+
+                <form id="form-opini-baru" onsubmit="simpanOpiniBaru(event)" class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <div class="md:col-span-6">
+                        <label for="opini-judul" class="block text-xs font-bold text-slate-700 mb-1">Judul Opini *</label>
+                        <input type="text" id="opini-judul" required placeholder="Contoh: Pentingnya Validasi Data Pemilih Tingkat Desa" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-red-600 outline-none">
+                    </div>
+
+                    <div class="md:col-span-3">
+                        <label for="opini-penulis" class="block text-xs font-bold text-slate-700 mb-1">Penulis *</label>
+                        <input type="text" id="opini-penulis" required placeholder="Nama penulis / pengamat" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-red-600 outline-none">
+                    </div>
+
+                    <div class="md:col-span-3">
+                        <label for="opini-tanggal" class="block text-xs font-bold text-slate-700 mb-1">Tanggal *</label>
+                        <input type="date" id="opini-tanggal" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-red-600 outline-none">
+                    </div>
+
+                    <div class="md:col-span-4">
+                        <label for="opini-topik" class="block text-xs font-bold text-slate-700 mb-1">Kategori Topik *</label>
+                        <select id="opini-topik" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-red-600 outline-none">
+                            <option value="Akurasi Data Pemilih">Akurasi Data Pemilih</option>
+                            <option value="Pemutakhiran Berkelanjutan">Pemutakhiran Berkelanjutan</option>
+                            <option value="Keterbukaan Informasi">Keterbukaan Informasi</option>
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-8">
+                        <label for="opini-ringkasan" class="block text-xs font-bold text-slate-700 mb-1">Ringkasan Singkat *</label>
+                        <input type="text" id="opini-ringkasan" required placeholder="Intisari gagasan utama dalam 1–2 kalimat..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-red-600 outline-none">
+                    </div>
+
+                    <div class="md:col-span-12">
+                        <label for="opini-isi" class="block text-xs font-bold text-slate-700 mb-1">Isi Opini Lengkap *</label>
+                        <textarea id="opini-isi" rows="5" required placeholder="Tuliskan uraian opini, sudut pandang data wilayah, atau rekomendasi kebijakan informasi publik..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-red-600 outline-none"></textarea>
+                    </div>
+
+                    <div class="md:col-span-12 flex justify-end">
+                        <button type="submit" class="inline-flex items-center gap-2 bg-red-700 hover:bg-red-800 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-xs transition cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            <span>Publikasikan Opini</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 mt-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+            <div>
+                <span class="font-semibold text-slate-700">Kamus Data Pemilih - Portal Informasi Data Pemilih</span> &mdash; Kabupaten Sukoharjo.
+            </div>
+            <div>
+                Data pemilih &amp; opini dapat diperbarui melalui antarmuka atau blok data terstruktur pada kode.
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL EDIT / UPDATE ANGKA PEMILIH SECARA LANGSUNG -->
+    <div id="modal-edit-data" class="fixed inset-0 z-50 hidden bg-slate-950/60 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between gap-3">
+                <div>
+                    <h3 class="text-base sm:text-lg font-extrabold">Edit / Update Angka Pemilih</h3>
+                    <p id="modal-subjudul-periode" class="text-xs text-slate-300 mt-0.5">Periode aktif: Pilkada Tahun 2024</p>
+                </div>
+                <button type="button" onclick="tutupModalEditData()" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer" aria-label="Tutup modal edit data">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-b border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                    <label for="edit-filter-kecamatan" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        Pilih Kecamatan
+                    </label>
+                    <select id="edit-filter-kecamatan" onchange="renderDaftarEditDesa()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-red-600"></select>
+                </div>
+                <div>
+                    <label for="edit-cari-desa" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        Cari Desa / Kelurahan
+                    </label>
+                    <input type="text" id="edit-cari-desa" oninput="renderDaftarEditDesa()" placeholder="Ketik nama desa/kelurahan..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-800 outline-none focus:ring-2 focus:ring-red-600">
+                </div>
+                <div class="flex items-end">
+                    <button type="button" onclick="resetAngkaPeriodeAktif()" class="w-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-bold text-xs py-2 px-3 rounded-xl transition cursor-pointer">
+                        Kembalikan Angka Awal Periode Ini
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 overflow-y-auto flex-grow">
+                <p class="text-xs text-slate-500 mb-3">
+                    Ubah angka <strong>Laki-Laki</strong> dan <strong>Perempuan</strong> untuk setiap desa/kelurahan. Angka tingkat kecamatan dan total kabupaten akan terhitung otomatis.
+                </p>
+                <div id="daftar-input-edit-desa" class="space-y-2.5"></div>
+            </div>
+
+            <div class="px-5 py-3.5 bg-slate-100 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                <span class="text-xs text-slate-600">
+                    Perubahan tersimpan otomatis selama sesi berlangsung.
+                </span>
+                <button type="button" onclick="tutupModalEditData()" class="bg-red-700 hover:bg-red-800 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded-xl transition cursor-pointer">
+                    Selesai &amp; Terapkan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFIKASI TOAST -->
+    <div id="toast-notifikasi" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white text-xs sm:text-sm font-medium px-4 py-3 rounded-xl shadow-lg flex items-center gap-2.5 pointer-events-none">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+        <span id="toast-pesan">Berhasil!</span>
+    </div>
+
+    <!-- LOGIKA & DATABASE WILAYAH KABUPATEN SUKOHARJO -->
+    <script>
+        /**
+         * =========================================================================
+         * 1. BLOK DATA UTAMA PEMILIH KABUPATEN SUKOHARJO (MUDAH DIEDIT LANGSUNG)
+         * =========================================================================
+         */
+        const DATA_PEMILIH_OVERRIDE = {
+            pilpres2024: {},
+            pilkada2024: {},
+            pdpb_2025_TW1: {},
+            pdpb_2025_TW2: {},
+            pdpb_2025_TW3: {},
+            pdpb_2025_TW4: {},
+            pdpb_2026_TW1: {},
+            pdpb_2026_TW2: {},
+            pdpb_2026_TW3: {},
+            pdpb_2026_TW4: {}
+        };
+
+        const WILAYAH_SUKOHARJO = [
+            {
+                kecamatan: "Weru",
+                desa: [
+                    { nama: "Alasombo", status: "Desa", baseL: 1620, baseP: 1675 },
+                    { nama: "Grogol", status: "Desa", baseL: 1510, baseP: 1560 },
+                    { nama: "Jatingarang", status: "Desa", baseL: 1740, baseP: 1795 },
+                    { nama: "Karakan", status: "Desa", baseL: 1680, baseP: 1720 },
+                    { nama: "Karanganyar", status: "Desa", baseL: 1890, baseP: 1940 },
+                    { nama: "Karangmojo", status: "Desa", baseL: 1760, baseP: 1810 },
+                    { nama: "Karangtengah", status: "Desa", baseL: 1640, baseP: 1690 },
+                    { nama: "Karangwuni", status: "Desa", baseL: 1810, baseP: 1865 },
+                    { nama: "Krajan", status: "Desa", baseL: 1720, baseP: 1775 },
+                    { nama: "Ngreco", status: "Desa", baseL: 1950, baseP: 2010 },
+                    { nama: "Tawang", status: "Desa", baseL: 2120, baseP: 2185 },
+                    { nama: "Tegalsari", status: "Desa", baseL: 1690, baseP: 1730 },
+                    { nama: "Weru", status: "Desa", baseL: 2040, baseP: 2110 }
+                ]
+            },
+            {
+                kecamatan: "Bulu",
+                desa: [
+                    { nama: "Bulu", status: "Desa", baseL: 1480, baseP: 1525 },
+                    { nama: "Gentan", status: "Desa", baseL: 1320, baseP: 1365 },
+                    { nama: "Kamal", status: "Desa", baseL: 1290, baseP: 1330 },
+                    { nama: "Karangasem", status: "Desa", baseL: 1540, baseP: 1590 },
+                    { nama: "Kedungsono", status: "Desa", baseL: 1390, baseP: 1430 },
+                    { nama: "Kedungwinong", status: "Desa", baseL: 1250, baseP: 1285 },
+                    { nama: "Kunden", status: "Desa", baseL: 1420, baseP: 1465 },
+                    { nama: "Lengking", status: "Desa", baseL: 1510, baseP: 1550 },
+                    { nama: "Malangan", status: "Desa", baseL: 1360, baseP: 1405 },
+                    { nama: "Ngasinan", status: "Desa", baseL: 1610, baseP: 1660 },
+                    { nama: "Puron", status: "Desa", baseL: 1280, baseP: 1315 },
+                    { nama: "Sanggang", status: "Desa", baseL: 1450, baseP: 1495 },
+                    { nama: "Tiyaran", status: "Desa", baseL: 1590, baseP: 1640 }
+                ]
+            },
+            {
+                kecamatan: "Tawangsari",
+                desa: [
+                    { nama: "Dalangan", status: "Desa", baseL: 1850, baseP: 1910 },
+                    { nama: "Grajegan", status: "Desa", baseL: 1690, baseP: 1740 },
+                    { nama: "Kedungjambal", status: "Desa", baseL: 1780, baseP: 1835 },
+                    { nama: "Kateguhan", status: "Desa", baseL: 1920, baseP: 1980 },
+                    { nama: "Lorog", status: "Desa", baseL: 1810, baseP: 1860 },
+                    { nama: "Majasto", status: "Desa", baseL: 1540, baseP: 1585 },
+                    { nama: "Pojok", status: "Desa", baseL: 1730, baseP: 1780 },
+                    { nama: "Ponowaren", status: "Desa", baseL: 1660, baseP: 1715 },
+                    { nama: "Pundungrejo", status: "Desa", baseL: 1620, baseP: 1670 },
+                    { nama: "Tambakboyo", status: "Desa", baseL: 1890, baseP: 1945 },
+                    { nama: "Tangkisan", status: "Desa", baseL: 1580, baseP: 1625 },
+                    { nama: "Watubonang", status: "Desa", baseL: 2040, baseP: 2110 }
+                ]
+            },
+            {
+                kecamatan: "Sukoharjo",
+                desa: [
+                    { nama: "Banmati", status: "Kelurahan", baseL: 2150, baseP: 2230 },
+                    { nama: "Begajah", status: "Kelurahan", baseL: 2380, baseP: 2460 },
+                    { nama: "Bulakan", status: "Kelurahan", baseL: 1980, baseP: 2045 },
+                    { nama: "Bulakrejo", status: "Kelurahan", baseL: 2490, baseP: 2580 },
+                    { nama: "Combongan", status: "Kelurahan", baseL: 2210, baseP: 2290 },
+                    { nama: "Dukuh", status: "Kelurahan", baseL: 2340, baseP: 2425 },
+                    { nama: "Gayam", status: "Kelurahan", baseL: 3120, baseP: 3250 },
+                    { nama: "Jetis", status: "Kelurahan", baseL: 2890, baseP: 2995 },
+                    { nama: "Joho", status: "Kelurahan", baseL: 3450, baseP: 3590 },
+                    { nama: "Kenep", status: "Kelurahan", baseL: 2060, baseP: 2130 },
+                    { nama: "Kriwen", status: "Kelurahan", baseL: 2190, baseP: 2265 },
+                    { nama: "Mandan", status: "Kelurahan", baseL: 2560, baseP: 2650 },
+                    { nama: "Sonorejo", status: "Kelurahan", baseL: 2420, baseP: 2510 },
+                    { nama: "Sukoharjo", status: "Kelurahan", baseL: 3280, baseP: 3410 }
+                ]
+            },
+            {
+                kecamatan: "Nguter",
+                desa: [
+                    { nama: "Baran", status: "Desa", baseL: 1490, baseP: 1535 },
+                    { nama: "Celep", status: "Desa", baseL: 1560, baseP: 1610 },
+                    { nama: "Daleman", status: "Desa", baseL: 1420, baseP: 1465 },
+                    { nama: "Gupit", status: "Desa", baseL: 1680, baseP: 1730 },
+                    { nama: "Jangglengan", status: "Desa", baseL: 1380, baseP: 1420 },
+                    { nama: "Juron", status: "Desa", baseL: 1510, baseP: 1555 },
+                    { nama: "Kedungwinong", status: "Desa", baseL: 1450, baseP: 1490 },
+                    { nama: "Kepuh", status: "Desa", baseL: 1790, baseP: 1845 },
+                    { nama: "Lawu", status: "Desa", baseL: 1340, baseP: 1380 },
+                    { nama: "Nguter", status: "Desa", baseL: 2120, baseP: 2195 },
+                    { nama: "Pengkol", status: "Desa", baseL: 1610, baseP: 1660 },
+                    { nama: "Plesan", status: "Desa", baseL: 1470, baseP: 1515 },
+                    { nama: "Pondok", status: "Desa", baseL: 1530, baseP: 1580 },
+                    { nama: "Serut", status: "Desa", baseL: 1390, baseP: 1435 },
+                    { nama: "Tanjung", status: "Desa", baseL: 1640, baseP: 1690 },
+                    { nama: "Tanjungrejo", status: "Desa", baseL: 1580, baseP: 1625 }
+                ]
+            },
+            {
+                kecamatan: "Bendosari",
+                desa: [
+                    { nama: "Bendosari", status: "Desa", baseL: 1720, baseP: 1775 },
+                    { nama: "Cabeyan", status: "Desa", baseL: 1580, baseP: 1630 },
+                    { nama: "Gentan", status: "Desa", baseL: 1640, baseP: 1690 },
+                    { nama: "Jagan", status: "Desa", baseL: 1690, baseP: 1745 },
+                    { nama: "Jombor", status: "Kelurahan", baseL: 2350, baseP: 2435 },
+                    { nama: "Manisharjo", status: "Desa", baseL: 1520, baseP: 1565 },
+                    { nama: "Mertan", status: "Desa", baseL: 1610, baseP: 1660 },
+                    { nama: "Mojorejo", status: "Desa", baseL: 1780, baseP: 1835 },
+                    { nama: "Mulur", status: "Desa", baseL: 2140, baseP: 2210 },
+                    { nama: "Paluhombo", status: "Desa", baseL: 1490, baseP: 1535 },
+                    { nama: "Puhgogor", status: "Desa", baseL: 1560, baseP: 1610 },
+                    { nama: "Sedayu", status: "Desa", baseL: 1440, baseP: 1485 },
+                    { nama: "Sidorejo", status: "Desa", baseL: 1670, baseP: 1725 },
+                    { nama: "Sugihan", status: "Desa", baseL: 1750, baseP: 1805 },
+                    { nama: "Toriyo", status: "Desa", baseL: 1890, baseP: 1950 }
+                ]
+            },
+            {
+                kecamatan: "Polokarto",
+                desa: [
+                    { nama: "Bakalan", status: "Desa", baseL: 1740, baseP: 1795 },
+                    { nama: "Bugel", status: "Desa", baseL: 1680, baseP: 1730 },
+                    { nama: "Bulu", status: "Desa", baseL: 1620, baseP: 1670 },
+                    { nama: "Genengsari", status: "Desa", baseL: 1790, baseP: 1845 },
+                    { nama: "Godog", status: "Desa", baseL: 1850, baseP: 1910 },
+                    { nama: "Jatisobo", status: "Desa", baseL: 1710, baseP: 1765 },
+                    { nama: "Kajuapak", status: "Desa", baseL: 1590, baseP: 1640 },
+                    { nama: "Karangwuni", status: "Desa", baseL: 1820, baseP: 1880 },
+                    { nama: "Kemasan", status: "Desa", baseL: 1940, baseP: 2005 },
+                    { nama: "Kenokorejo", status: "Desa", baseL: 1760, baseP: 1815 },
+                    { nama: "Mranggen", status: "Desa", baseL: 2180, baseP: 2255 },
+                    { nama: "Ngombakan", status: "Desa", baseL: 1690, baseP: 1740 },
+                    { nama: "Polokarto", status: "Desa", baseL: 2240, baseP: 2315 },
+                    { nama: "Pranan", status: "Desa", baseL: 1650, baseP: 1700 },
+                    { nama: "Rejosari", status: "Desa", baseL: 1730, baseP: 1785 },
+                    { nama: "Tepisari", status: "Desa", baseL: 1880, baseP: 1940 },
+                    { nama: "Wonorejo", status: "Desa", baseL: 2050, baseP: 2120 }
+                ]
+            },
+            {
+                kecamatan: "Mojolaban",
+                desa: [
+                    { nama: "Bekonang", status: "Desa", baseL: 2310, baseP: 2390 },
+                    { nama: "Cangkol", status: "Desa", baseL: 2140, baseP: 2210 },
+                    { nama: "Demakan", status: "Desa", baseL: 1980, baseP: 2045 },
+                    { nama: "Dukuh", status: "Desa", baseL: 2050, baseP: 2120 },
+                    { nama: "Gadingan", status: "Desa", baseL: 2260, baseP: 2335 },
+                    { nama: "Joho", status: "Desa", baseL: 2190, baseP: 2265 },
+                    { nama: "Klumprit", status: "Desa", baseL: 1890, baseP: 1950 },
+                    { nama: "Kragilan", status: "Desa", baseL: 1940, baseP: 2005 },
+                    { nama: "Laban", status: "Desa", baseL: 2420, baseP: 2505 },
+                    { nama: "Palur", status: "Desa", baseL: 3480, baseP: 3610 },
+                    { nama: "Plumbon", status: "Desa", baseL: 2110, baseP: 2180 },
+                    { nama: "Sapen", status: "Desa", baseL: 1860, baseP: 1920 },
+                    { nama: "Tegalmade", status: "Desa", baseL: 1920, baseP: 1985 },
+                    { nama: "Triyagan", status: "Desa", baseL: 2680, baseP: 2775 },
+                    { nama: "Wirun", status: "Desa", baseL: 2390, baseP: 2475 }
+                ]
+            },
+            {
+                kecamatan: "Grogol",
+                desa: [
+                    { nama: "Banaran", status: "Desa", baseL: 2840, baseP: 2945 },
+                    { nama: "Cemani", status: "Desa", baseL: 4920, baseP: 5110 },
+                    { nama: "Gedangan", status: "Desa", baseL: 3150, baseP: 3265 },
+                    { nama: "Grogol", status: "Desa", baseL: 3420, baseP: 3545 },
+                    { nama: "Kadokan", status: "Desa", baseL: 2690, baseP: 2785 },
+                    { nama: "Kwarasan", status: "Desa", baseL: 3380, baseP: 3505 },
+                    { nama: "Langenharjo", status: "Desa", baseL: 2980, baseP: 3090 },
+                    { nama: "Madegondo", status: "Desa", baseL: 3260, baseP: 3380 },
+                    { nama: "Manang", status: "Desa", baseL: 2540, baseP: 2630 },
+                    { nama: "Menuran", status: "Desa", baseL: 2410, baseP: 2495 },
+                    { nama: "Pandeyan", status: "Desa", baseL: 2760, baseP: 2860 },
+                    { nama: "Parangjoro", status: "Desa", baseL: 2490, baseP: 2580 },
+                    { nama: "Pondok", status: "Desa", baseL: 2620, baseP: 2715 },
+                    { nama: "Sanggrahan", status: "Desa", baseL: 3090, baseP: 3205 },
+                    { nama: "Telukan", status: "Desa", baseL: 3890, baseP: 4035 }
+                ]
+            },
+            {
+                kecamatan: "Baki",
+                desa: [
+                    { nama: "Bakipandeyan", status: "Desa", baseL: 1980, baseP: 2045 },
+                    { nama: "Bentakan", status: "Desa", baseL: 1840, baseP: 1900 },
+                    { nama: "Duwet", status: "Desa", baseL: 1790, baseP: 1850 },
+                    { nama: "Gedongan", status: "Desa", baseL: 2120, baseP: 2195 },
+                    { nama: "Gentan", status: "Desa", baseL: 3450, baseP: 3580 },
+                    { nama: "Jetis", status: "Desa", baseL: 1920, baseP: 1985 },
+                    { nama: "Kadilangu", status: "Desa", baseL: 1750, baseP: 1810 },
+                    { nama: "Kudu", status: "Desa", baseL: 1890, baseP: 1955 },
+                    { nama: "Mancasan", status: "Desa", baseL: 2240, baseP: 2320 },
+                    { nama: "Menuran", status: "Desa", baseL: 2060, baseP: 2130 },
+                    { nama: "Ngrombo", status: "Desa", baseL: 1810, baseP: 1870 },
+                    { nama: "Purbayan", status: "Desa", baseL: 2380, baseP: 2465 },
+                    { nama: "Siwal", status: "Desa", baseL: 1720, baseP: 1775 },
+                    { nama: "Waru", status: "Desa", baseL: 2190, baseP: 2265 }
+                ]
+            },
+            {
+                kecamatan: "Gatak",
+                desa: [
+                    { nama: "Blimbing", status: "Desa", baseL: 1820, baseP: 1880 },
+                    { nama: "Geneng", status: "Desa", baseL: 1640, baseP: 1695 },
+                    { nama: "Jati", status: "Desa", baseL: 1590, baseP: 1640 },
+                    { nama: "Kagokan", status: "Desa", baseL: 1510, baseP: 1560 },
+                    { nama: "Klaseman", status: "Desa", baseL: 1560, baseP: 1610 },
+                    { nama: "Krajan", status: "Desa", baseL: 1690, baseP: 1745 },
+                    { nama: "Luwang", status: "Desa", baseL: 1740, baseP: 1795 },
+                    { nama: "Mayang", status: "Desa", baseL: 1980, baseP: 2045 },
+                    { nama: "Sanggung", status: "Desa", baseL: 1620, baseP: 1675 },
+                    { nama: "Sraten", status: "Desa", baseL: 1780, baseP: 1840 },
+                    { nama: "Tempel", status: "Desa", baseL: 1540, baseP: 1590 },
+                    { nama: "Trangsan", status: "Desa", baseL: 2210, baseP: 2285 },
+                    { nama: "Trosemi", status: "Desa", baseL: 1670, baseP: 1725 },
+                    { nama: "Wironanggan", status: "Desa", baseL: 1710, baseP: 1765 }
+                ]
+            },
+            {
+                kecamatan: "Kartasura",
+                desa: [
+                    { nama: "Gonilan", status: "Desa", baseL: 3420, baseP: 3550 },
+                    { nama: "Gumpang", status: "Desa", baseL: 3290, baseP: 3410 },
+                    { nama: "Kartasura", status: "Kelurahan", baseL: 3980, baseP: 4130 },
+                    { nama: "Kertonatan", status: "Desa", baseL: 2640, baseP: 2735 },
+                    { nama: "Makamhaji", status: "Desa", baseL: 4860, baseP: 5050 },
+                    { nama: "Ngabeyan", status: "Kelurahan", baseL: 2910, baseP: 3015 },
+                    { nama: "Ngadirejo", status: "Desa", baseL: 3150, baseP: 3265 },
+                    { nama: "Ngemplak", status: "Desa", baseL: 2580, baseP: 2670 },
+                    { nama: "Pabelan", status: "Desa", baseL: 3740, baseP: 3880 },
+                    { nama: "Pucangan", status: "Desa", baseL: 4120, baseP: 4275 },
+                    { nama: "Singopuran", status: "Desa", baseL: 3360, baseP: 3485 },
+                    { nama: "Wirogunan", status: "Desa", baseL: 2890, baseP: 2995 }
+                ]
+            }
+        ];
+
+        /**
+         * =========================================================================
+         * 1B. GEOMETRI SPASIAL & PALET WARNA 12 KECAMATAN KABUPATEN SUKOHARJO
+         * =========================================================================
+         */
+        const GEOMETRI_KECAMATAN_SUKOHARJO = {
+            "Kartasura": {
+                warna: "#ef4444",
+                path: "M 55,40 L 175,35 L 185,115 L 135,140 L 55,130 Z",
+                labelX: 118, labelY: 85,
+                boxDesa: { x: 66, y: 50, w: 102, h: 72 }
+            },
+            "Gatak": {
+                warna: "#f97316",
+                path: "M 55,130 L 135,140 L 155,215 L 65,225 Z",
+                labelX: 105, labelY: 178,
+                boxDesa: { x: 68, y: 142, w: 72, h: 70 }
+            },
+            "Baki": {
+                warna: "#eab308",
+                path: "M 135,140 L 185,115 L 255,135 L 245,220 L 155,215 Z",
+                labelX: 198, labelY: 172,
+                boxDesa: { x: 152, y: 138, w: 86, h: 70 }
+            },
+            "Grogol": {
+                warna: "#10b981",
+                path: "M 255,135 L 350,120 L 365,235 L 245,220 Z",
+                labelX: 305, labelY: 180,
+                boxDesa: { x: 256, y: 136, w: 94, h: 82 }
+            },
+            "Mojolaban": {
+                warna: "#06b6d4",
+                path: "M 350,120 L 470,95 L 485,205 L 365,235 Z",
+                labelX: 418, labelY: 165,
+                boxDesa: { x: 366, y: 124, w: 102, h: 80 }
+            },
+            "Polokarto": {
+                warna: "#3b82f6",
+                path: "M 365,235 L 485,205 L 555,230 L 540,340 L 385,325 Z",
+                labelX: 462, labelY: 278,
+                boxDesa: { x: 386, y: 226, w: 145, h: 92 }
+            },
+            "Sukoharjo": {
+                warna: "#8b5cf6",
+                path: "M 245,220 L 365,235 L 385,325 L 265,345 L 235,280 Z",
+                labelX: 310, labelY: 285,
+                boxDesa: { x: 254, y: 236, w: 112, h: 88 }
+            },
+            "Bendosari": {
+                warna: "#ec4899",
+                path: "M 385,325 L 540,340 L 515,435 L 375,415 Z",
+                labelX: 452, labelY: 380,
+                boxDesa: { x: 388, y: 336, w: 122, h: 78 }
+            },
+            "Tawangsari": {
+                warna: "#14b8a6",
+                path: "M 145,295 L 235,280 L 265,345 L 250,435 L 155,425 Z",
+                labelX: 205, labelY: 365,
+                boxDesa: { x: 160, y: 304, w: 86, h: 112 }
+            },
+            "Nguter": {
+                warna: "#6366f1",
+                path: "M 265,345 L 385,325 L 375,415 L 415,495 L 285,500 L 250,435 Z",
+                labelX: 332, labelY: 422,
+                boxDesa: { x: 272, y: 348, w: 106, h: 125 }
+            },
+            "Bulu": {
+                warna: "#84cc16",
+                path: "M 155,425 L 250,435 L 285,500 L 265,570 L 175,565 Z",
+                labelX: 222, labelY: 502,
+                boxDesa: { x: 175, y: 440, w: 88, h: 112 }
+            },
+            "Weru": {
+                warna: "#d97706",
+                path: "M 65,435 L 155,425 L 175,565 L 70,575 Z",
+                labelX: 118, labelY: 505,
+                boxDesa: { x: 76, y: 442, w: 84, h: 116 }
+            }
+        };
+
+        const PALET_WARNA_DESA = [
+            "#ef4444", "#f97316", "#f59e0b", "#eab308", "#84cc16",
+            "#22c55e", "#10b981", "#14b8a6", "#06b6d4", "#0ea5e9",
+            "#3b82f6", "#6366f1", "#8b5cf6", "#a855f7", "#d946ef",
+            "#ec4899", "#f43f5e"
+        ];
+
+        const PENGALI_KATEGORI = {
+            "pilpres2024": 0.9912,
+            "pilkada2024": 1.0000,
+            "pdpb_2025_TW1": 1.0021,
+            "pdpb_2025_TW2": 1.0045,
+            "pdpb_2025_TW3": 1.0068,
+            "pdpb_2025_TW4": 1.0092,
+            "pdpb_2026_TW1": 1.0115,
+            "pdpb_2026_TW2": 1.0138,
+            "pdpb_2026_TW3": 1.0160,
+            "pdpb_2026_TW4": 1.0184
+        };
+
+        /**
+         * =========================================================================
+         * 1C. DATA OPINI SEPUTAR DATA DAN INFORMASI
+         * =========================================================================
+         */
+        const STORAGE_KEY_OPINI = "kamus_data_pemilih_sukoharjo_opini_v1";
+
+        const OPINI_BAWAAN = [
+            {
+                id: "opini-1",
+                judul: "Membaca Dinamika Demografi Pemilih dari Kecamatan Penyangga hingga Wilayah Selatan",
+                penulis: "Tim Kajian Data Wilayah",
+                tanggal: "2026-03-14",
+                topik: "Akurasi Data Pemilih",
+                ringkasan: "Perbedaan kepadatan pemilih antara kawasan perkotaan seperti Kartasura dan Grogol dengan wilayah selatan seperti Weru dan Bulu menuntut pendekatan verifikasi data yang kontekstual.",
+                isi: "Data pemilih berbasis wilayah bukan sekadar deretan angka agregat kabupaten, melainkan cerminan mobilitas penduduk, pertumbuhan permukiman baru, serta dinamika administrasi kependudukan di tingkat desa dan kelurahan.\n\nDi Kabupaten Sukoharjo, wilayah yang berbatasan langsung dengan Kota Surakarta seperti Kartasura, Grogol, dan Mojolaban memiliki tingkat pergerakan penduduk yang tinggi. Sebaliknya, di wilayah selatan seperti Weru dan Bulu, pemutakhiran data sering bersinggungan dengan pencatatan perubahan status kependudukan warga yang merantau atau menetap.\n\nDengan menyandingkan angka per kecamatan dan per desa/kelurahan secara berdampingan, pembacaan perubahan jumlah pemilih menjadi jauh lebih tajam dan terukur."
+            },
+            {
+                id: "opini-2",
+                judul: "Konsistensi Triwulanan dalam Pemutakhiran Data Pemilih Berkelanjutan",
+                penulis: "Redaksi Kamus Data Pemilih",
+                tanggal: "2026-06-22",
+                topik: "Pemutakhiran Berkelanjutan",
+                ringkasan: "Pencatatan rutin per triwulan pada tahun 2025 dan 2026 membantu menjaga kesinambungan basis data pemilih di luar tahapan pemilu maupun pemilihan.",
+                isi: "Pemutakhiran Data Pemilih Berkelanjutan (PDPB) dirancang agar kualitas data pemilih tidak hanya diperbaiki secara reaktif menjelang hari pemungutan suara, tetapi dirawat secara berkala setiap triwulan.\n\nMelalui pembagian periode Triwulan 1, 2, 3, dan 4 pada tahun 2025 maupun 2026, pengguna data dapat melihat tren penambahan pemilih baru, pembaruan elemen data, serta penyesuaian akibat pindah domisili atau perubahan status.\n\nKedisiplinan dokumentasi tiap triwulan membuat proses rekonsiliasi data antarperiode menjadi lebih transparan dan mudah diaudit."
+            },
+            {
+                id: "opini-3",
+                judul: "Kamus Data dan Literasi Informasi Publik di Tingkat Desa/Kelurahan",
+                penulis: "Satgas Literasi Informasi",
+                tanggal: "2026-09-10",
+                topik: "Keterbukaan Informasi",
+                ringkasan: "Menyajikan data hingga level 167 desa/kelurahan memperluas akses informasi publik agar masyarakat dan pegiat data dapat memahami konteks wilayahnya sendiri.",
+                isi: "Keterbukaan informasi publik akan lebih bermakna ketika data disajikan dalam format yang mudah dipahami, dapat ditelusuri sampai tingkat wilayah terkecil, dan disertai penjelasan istilah yang jelas.\n\nSering kali publik hanya melihat angka total kabupaten sehingga rincian di tingkat kelurahan atau desa kurang tersampaikan. Padahal, di tingkat desa dan kelurahanlah dinamika sosial dan kependudukan sehari-hari berlangsung.\n\nPenggabungan konsep kamus data dengan portal informasi wilayah membantu menjembatani kebutuhan data mentah dengan pemahaman publik yang lebih luas."
+            }
+        ];
+
+        // STATE APLIKASI
+        let state = {
+            menuAktif: 'pilkada2024',       // 'pilkada2024' | 'pilpres2024' | 'pdpb' | 'opini'
+            tahunPDPB: '2025',              // '2025' | '2026'
+            triwulanPDPB: 1,                // 1 | 2 | 3 | 4
+            tingkatWilayah: 'kecamatan',    // 'kecamatan' | 'desa'
+            modeWarnaPeta: 'distingtif',    // 'distingtif' | 'gradasi'
+            desaTerpilih: null,
+            chartInstance: null,
+            dataTerfilterSaatIni: [],
+            daftarOpini: [],
+            topikOpiniAktif: 'ALL',
+            opiniTerpilihId: null
+        };
+
+        const formatAngka = (num) => new Intl.NumberFormat('id-ID').format(Math.round(num));
+
+        // INISIALISASI DROPDOWN & CHIP KECAMATAN
+        function inisialisasiFilterKecamatan() {
+            const selectKec = document.getElementById('filter-kecamatan');
+            const editSelectKec = document.getElementById('edit-filter-kecamatan');
+            const gridChip = document.getElementById('grid-chip-kecamatan');
+            gridChip.innerHTML = '';
+            editSelectKec.innerHTML = '';
+
+            WILAYAH_SUKOHARJO.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.kecamatan;
+                option.textContent = `Kecamatan ${item.kecamatan} (${item.desa.length} Desa/Kel)`;
+                selectKec.appendChild(option);
+
+                const editOpt = document.createElement('option');
+                editOpt.value = item.kecamatan;
+                editOpt.textContent = `Kecamatan ${item.kecamatan} (${item.desa.length} Desa/Kel)`;
+                editSelectKec.appendChild(editOpt);
+
+                const warna = GEOMETRI_KECAMATAN_SUKOHARJO[item.kecamatan]?.warna || '#64748b';
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.id = `chip-kec-${item.kecamatan}`;
+                chip.onclick = () => klikWilayahDiPeta(item.kecamatan, null);
+                chip.className = "flex items-center gap-2 px-2.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-left text-xs font-semibold text-slate-700 transition cursor-pointer shadow-2xs";
+                chip.innerHTML = `
+                    <span class="w-3 h-3 rounded-full shrink-0 border border-black/15" style="background-color: ${warna}"></span>
+                    <span class="truncate">${item.kecamatan}</span>
+                `;
+                gridChip.appendChild(chip);
+            });
+        }
+
+        // PILIH MENU UTAMA (1, 2, 3, ATAU 4)
+        function pilihMenu(menu) {
+            state.menuAktif = menu;
+
+            const daftarMenu = ['pilkada2024', 'pilpres2024', 'pdpb', 'opini'];
+            daftarMenu.forEach(m => {
+                const btn = document.getElementById(`tab-${m}`);
+                const badge = btn.querySelector('span');
+                if (m === menu) {
+                    btn.className = "menu-tab flex items-center gap-3 p-3.5 rounded-xl text-left transition-all duration-200 bg-red-700 text-white shadow-sm cursor-pointer";
+                    badge.className = "w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-extrabold text-sm shrink-0";
+                } else {
+                    btn.className = "menu-tab flex items-center gap-3 p-3.5 rounded-xl text-left transition-all duration-200 bg-slate-100 hover:bg-slate-200/80 text-slate-700 cursor-pointer";
+                    badge.className = "w-8 h-8 rounded-lg bg-slate-300/70 text-slate-800 flex items-center justify-center font-extrabold text-sm shrink-0";
+                }
+            });
+
+            const panelPDPB = document.getElementById('panel-sub-pdpb');
+            if (menu === 'pdpb') {
+                panelPDPB.classList.remove('hidden');
+            } else {
+                panelPDPB.classList.add('hidden');
+            }
+
+            const kontainerData = document.getElementById('kontainer-data-pemilih');
+            const kontainerOpini = document.getElementById('kontainer-opini');
+
+            if (menu === 'opini') {
+                kontainerData.classList.add('hidden');
+                kontainerOpini.classList.remove('hidden');
+                renderDaftarOpini();
+            } else {
+                kontainerOpini.classList.add('hidden');
+                kontainerData.classList.remove('hidden');
+                perbaruiTampilan();
+            }
+        }
+
+        // PILIH TAHUN PDPB (2025 / 2026)
+        function pilihTahunPDPB(tahun) {
+            state.tahunPDPB = tahun;
+            ['2025', '2026'].forEach(t => {
+                const btn = document.getElementById(`btn-tahun-${t}`);
+                if (t === tahun) {
+                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-600 text-white transition cursor-pointer";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-amber-100 transition cursor-pointer";
+                }
+            });
+            perbaruiTampilan();
+        }
+
+        // PILIH TRIWULAN PDPB (1, 2, 3, 4)
+        function pilihTriwulanPDPB(tw) {
+            state.triwulanPDPB = tw;
+            [1, 2, 3, 4].forEach(num => {
+                const btn = document.getElementById(`btn-tw-${num}`);
+                if (num === tw) {
+                    btn.className = "px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-600 text-white transition cursor-pointer";
+                } else {
+                    btn.className = "px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-amber-100 transition cursor-pointer";
+                }
+            });
+            perbaruiTampilan();
+        }
+
+        // PILIH TINGKAT WILAYAH ('kecamatan' vs 'desa')
+        function pilihTingkatWilayah(tingkat) {
+            state.tingkatWilayah = tingkat;
+            if (tingkat === 'kecamatan') {
+                state.desaTerpilih = null;
+            }
+
+            const btnKec = document.getElementById('btn-tingkat-kecamatan');
+            const btnDesa = document.getElementById('btn-tingkat-desa');
+
+            if (tingkat === 'kecamatan') {
+                btnKec.className = "flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold bg-white text-red-700 shadow-xs transition cursor-pointer";
+                btnDesa.className = "flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer";
+            } else {
+                btnDesa.className = "flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold bg-white text-red-700 shadow-xs transition cursor-pointer";
+                btnKec.className = "flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer";
+            }
+
+            perbaruiTampilan();
+        }
+
+        function pilihKecamatanDariDropdown() {
+            state.desaTerpilih = null;
+            perbaruiTampilan();
+        }
+
+        function klikWilayahDiPeta(namaKecamatan, namaDesa) {
+            const selectKec = document.getElementById('filter-kecamatan');
+
+            if (namaDesa) {
+                if (state.tingkatWilayah !== 'desa') {
+                    state.tingkatWilayah = 'desa';
+                    document.getElementById('btn-tingkat-desa').className = "flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold bg-white text-red-700 shadow-xs transition cursor-pointer";
+                    document.getElementById('btn-tingkat-kecamatan').className = "flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer";
+                }
+
+                if (state.desaTerpilih && state.desaTerpilih.kecamatan === namaKecamatan && state.desaTerpilih.desa === namaDesa) {
+                    state.desaTerpilih = null;
+                } else {
+                    const kecObj = WILAYAH_SUKOHARJO.find(k => k.kecamatan === namaKecamatan);
+                    const idxDesa = kecObj ? kecObj.desa.findIndex(d => d.nama === namaDesa) : 0;
+                    const warnaDesa = PALET_WARNA_DESA[(idxDesa >= 0 ? idxDesa : 0) % PALET_WARNA_DESA.length];
+
+                    state.desaTerpilih = {
+                        kecamatan: namaKecamatan,
+                        desa: namaDesa,
+                        warna: warnaDesa
+                    };
+                    selectKec.value = namaKecamatan;
+                }
+            } else {
+                state.desaTerpilih = null;
+                if (selectKec.value === namaKecamatan) {
+                    selectKec.value = 'ALL';
+                } else {
+                    selectKec.value = namaKecamatan;
+                }
+            }
+
+            perbaruiTampilan();
+        }
+
+        function resetPilihanWilayah() {
+            document.getElementById('filter-kecamatan').value = 'ALL';
+            document.getElementById('input-pencarian').value = '';
+            state.desaTerpilih = null;
+            perbaruiTampilan();
+        }
+
+        function ubahModeWarnaPeta(mode) {
+            state.modeWarnaPeta = mode;
+            const btnDistingtif = document.getElementById('btn-warna-distingtif');
+            const btnGradasi = document.getElementById('btn-warna-gradasi');
+
+            if (mode === 'distingtif') {
+                btnDistingtif.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer bg-white text-slate-900 shadow-xs";
+                btnGradasi.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900";
+            } else {
+                btnGradasi.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer bg-white text-slate-900 shadow-xs";
+                btnDistingtif.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-600 hover:text-slate-900";
+            }
+
+            perbaruiTampilan();
+        }
+
+        function hapusPencarian() {
+            document.getElementById('input-pencarian').value = '';
+            perbaruiTampilan();
+        }
+
+        function getInfoKategoriAktif() {
+            if (state.menuAktif === 'pilkada2024') {
+                return {
+                    key: 'pilkada2024',
+                    label: 'Pilkada Tahun 2024',
+                    factor: PENGALI_KATEGORI['pilkada2024']
+                };
+            } else if (state.menuAktif === 'pilpres2024') {
+                return {
+                    key: 'pilpres2024',
+                    label: 'Pilpres Tahun 2024',
+                    factor: PENGALI_KATEGORI['pilpres2024']
+                };
+            } else {
+                const key = `pdpb_${state.tahunPDPB}_TW${state.triwulanPDPB}`;
+                return {
+                    key: key,
+                    label: `Pemutakhiran Data Pemilih Berkelanjutan Tahun ${state.tahunPDPB} — Triwulan ${state.triwulanPDPB}`,
+                    factor: PENGALI_KATEGORI[key] || 1.0
+                };
+            }
+        }
+
+        function olahDataPemilih() {
+            const infoKategori = getInfoKategoriAktif();
+            const filterKec = document.getElementById('filter-kecamatan').value;
+            const kataKunci = document.getElementById('input-pencarian').value.trim().toLowerCase();
+            const urutan = document.getElementById('urutkan-data').value;
+            const overridePeriode = DATA_PEMILIH_OVERRIDE[infoKategori.key] || {};
+
+            const btnClear = document.getElementById('btn-clear-search');
+            if (kataKunci.length > 0) {
+                btnClear.classList.remove('hidden');
+            } else {
+                btnClear.classList.add('hidden');
+            }
+
+            let hasil = [];
+
+            WILAYAH_SUKOHARJO.forEach(kecObj => {
+                if (filterKec !== 'ALL' && kecObj.kecamatan !== filterKec) {
+                    return;
+                }
+                const overrideKec = overridePeriode[kecObj.kecamatan] || {};
+
+                if (state.tingkatWilayah === 'kecamatan') {
+                    let totalL = 0;
+                    let totalP = 0;
+
+                    kecObj.desa.forEach((d, idx) => {
+                        const customDesa = overrideKec[d.nama];
+                        if (customDesa && typeof customDesa.l === 'number' && typeof customDesa.p === 'number') {
+                            totalL += Math.round(customDesa.l);
+                            totalP += Math.round(customDesa.p);
+                        } else {
+                            const variasi = 1 + (((idx % 5) - 2) * 0.0012);
+                            totalL += Math.round(d.baseL * infoKategori.factor * variasi);
+                            totalP += Math.round(d.baseP * infoKategori.factor * variasi);
+                        }
+                    });
+
+                    if (kataKunci && !kecObj.kecamatan.toLowerCase().includes(kataKunci)) {
+                        return;
+                    }
+
+                    hasil.push({
+                        kecamatan: kecObj.kecamatan,
+                        desa: '-',
+                        status: 'Kecamatan',
+                        laki: totalL,
+                        perempuan: totalP,
+                        total: totalL + totalP,
+                        jumlahDesa: kecObj.desa.length,
+                        warnaIdentitas: GEOMETRI_KECAMATAN_SUKOHARJO[kecObj.kecamatan]?.warna || '#64748b'
+                    });
+                } else {
+                    kecObj.desa.forEach((d, idx) => {
+                        if (state.desaTerpilih && state.desaTerpilih.kecamatan === kecObj.kecamatan && state.desaTerpilih.desa !== d.nama) {
+                            return;
+                        }
+
+                        const customDesa = overrideKec[d.nama];
+                        let l, p;
+                        if (customDesa && typeof customDesa.l === 'number' && typeof customDesa.p === 'number') {
+                            l = Math.round(customDesa.l);
+                            p = Math.round(customDesa.p);
+                        } else {
+                            const variasi = 1 + (((idx % 5) - 2) * 0.0012);
+                            l = Math.round(d.baseL * infoKategori.factor * variasi);
+                            p = Math.round(d.baseP * infoKategori.factor * variasi);
+                        }
+                        const warnaDesa = PALET_WARNA_DESA[idx % PALET_WARNA_DESA.length];
+
+                        const cocokCari = !kataKunci ||
+                            d.nama.toLowerCase().includes(kataKunci) ||
+                            kecObj.kecamatan.toLowerCase().includes(kataKunci);
+
+                        if (!cocokCari) return;
+
+                        hasil.push({
+                            kecamatan: kecObj.kecamatan,
+                            desa: d.nama,
+                            status: d.status,
+                            laki: l,
+                            perempuan: p,
+                            total: l + p,
+                            warnaIdentitas: warnaDesa
+                        });
+                    });
+                }
+            });
+
+            hasil.sort((a, b) => {
+                if (urutan === 'total_desc') return b.total - a.total;
+                if (urutan === 'total_asc') return a.total - b.total;
+                const namaA = state.tingkatWilayah === 'kecamatan' ? a.kecamatan : `${a.kecamatan} ${a.desa}`;
+                const namaB = state.tingkatWilayah === 'kecamatan' ? b.kecamatan : `${b.kecamatan} ${b.desa}`;
+                return namaA.localeCompare(namaB, 'id');
+            });
+
+            state.dataTerfilterSaatIni = hasil;
+            return { data: hasil, infoKategori };
+        }
+
+        function perbaruiTampilan() {
+            if (state.menuAktif === 'opini') return;
+
+            const { data, infoKategori } = olahDataPemilih();
+            const filterKec = document.getElementById('filter-kecamatan').value;
+            const kataKunci = document.getElementById('input-pencarian').value.trim();
+
+            const btnReset = document.getElementById('btn-reset-wilayah');
+            if (filterKec !== 'ALL' || state.desaTerpilih !== null || kataKunci.length > 0) {
+                btnReset.classList.remove('hidden');
+            } else {
+                btnReset.classList.add('hidden');
+            }
+
+            let sumLaki = 0;
+            let sumPerempuan = 0;
+            let sumTotal = 0;
+
+            data.forEach(row => {
+                sumLaki += row.laki;
+                sumPerempuan += row.perempuan;
+                sumTotal += row.total;
+            });
+
+            const persenLaki = sumTotal > 0 ? ((sumLaki / sumTotal) * 100).toFixed(2) : '0.00';
+            const persenPerempuan = sumTotal > 0 ? ((sumPerempuan / sumTotal) * 100).toFixed(2) : '0.00';
+
+            document.getElementById('kpi-total').textContent = formatAngka(sumTotal);
+            document.getElementById('kpi-kategori-label').textContent = infoKategori.label;
+
+            document.getElementById('kpi-laki').textContent = formatAngka(sumLaki);
+            document.getElementById('kpi-laki-persen').textContent = `${persenLaki}%`;
+
+            document.getElementById('kpi-perempuan').textContent = formatAngka(sumPerempuan);
+            document.getElementById('kpi-perempuan-persen').textContent = `${persenPerempuan}%`;
+
+            document.getElementById('kpi-wilayah-jumlah').textContent = formatAngka(data.length);
+            document.getElementById('kpi-wilayah-label').textContent =
+                state.tingkatWilayah === 'kecamatan'
+                    ? 'Kecamatan ditampilkan'
+                    : 'Desa / Kelurahan ditampilkan';
+
+            perbaruiPetaSukoharjo(infoKategori, filterKec);
+            perbaruiGrafik(data, infoKategori);
+            perbaruiTabel(data, sumLaki, sumPerempuan, sumTotal);
+        }
+
+        function perbaruiPetaSukoharjo(infoKategori, filterKec) {
+            const layerKecamatan = document.getElementById('layer-poligon-kecamatan');
+            const layerDesa = document.getElementById('layer-sel-desa');
+            const layerLabel = document.getElementById('layer-label-kecamatan');
+            const badgeModePeta = document.getElementById('badge-mode-peta');
+            const legendaPeta = document.getElementById('legenda-peta');
+
+            layerKecamatan.innerHTML = '';
+            layerDesa.innerHTML = '';
+            layerLabel.innerHTML = '';
+
+            const rekapKecamatan = {};
+            const overridePeriode = DATA_PEMILIH_OVERRIDE[infoKategori.key] || {};
+            let maxTotalKec = 0;
+            let minTotalKec = Infinity;
+            let maxTotalDesa = 0;
+            let minTotalDesa = Infinity;
+
+            WILAYAH_SUKOHARJO.forEach(kecObj => {
+                let lKec = 0;
+                let pKec = 0;
+                const overrideKec = overridePeriode[kecObj.kecamatan] || {};
+                const daftarDesaHitung = kecObj.desa.map((d, idx) => {
+                    const customDesa = overrideKec[d.nama];
+                    let l, p;
+                    if (customDesa && typeof customDesa.l === 'number' && typeof customDesa.p === 'number') {
+                        l = Math.round(customDesa.l);
+                        p = Math.round(customDesa.p);
+                    } else {
+                        const variasi = 1 + (((idx % 5) - 2) * 0.0012);
+                        l = Math.round(d.baseL * infoKategori.factor * variasi);
+                        p = Math.round(d.baseP * infoKategori.factor * variasi);
+                    }
+                    const totD = l + p;
+                    if (totD > maxTotalDesa) maxTotalDesa = totD;
+                    if (totD < minTotalDesa) minTotalDesa = totD;
+                    lKec += l;
+                    pKec += p;
+                    return {
+                        nama: d.nama,
+                        status: d.status,
+                        laki: l,
+                        perempuan: p,
+                        total: totD,
+                        warnaDesa: PALET_WARNA_DESA[idx % PALET_WARNA_DESA.length]
+                    };
+                });
+
+                const totalKec = lKec + pKec;
+                if (totalKec > maxTotalKec) maxTotalKec = totalKec;
+                if (totalKec < minTotalKec) minTotalKec = totalKec;
+
+                rekapKecamatan[kecObj.kecamatan] = {
+                    kecamatan: kecObj.kecamatan,
+                    laki: lKec,
+                    perempuan: pKec,
+                    total: totalKec,
+                    desaList: daftarDesaHitung
+                };
+            });
+
+            const dapatkanWarnaGradasi = (total, minVal, maxVal) => {
+                const rasio = maxVal > minVal ? (total - minVal) / (maxVal - minVal) : 0.5;
+                if (rasio >= 0.8) return '#991b1b';
+                if (rasio >= 0.6) return '#dc2626';
+                if (rasio >= 0.4) return '#ea580c';
+                if (rasio >= 0.2) return '#f59e0b';
+                return '#fbbf24';
+            };
+
+            const isModeDesa = state.tingkatWilayah === 'desa';
+            badgeModePeta.innerHTML = isModeDesa
+                ? `<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>Tampilan: 12 Kecamatan &amp; 167 Zona Desa/Kelurahan (Berwarna)</span>`
+                : `<span class="w-2 h-2 rounded-full bg-red-600"></span><span>Tampilan: 12 Batas Kecamatan</span>`;
+
+            WILAYAH_SUKOHARJO.forEach(kecObj => {
+                const namaKec = kecObj.kecamatan;
+                const geo = GEOMETRI_KECAMATAN_SUKOHARJO[namaKec];
+                const statKec = rekapKecamatan[namaKec];
+                if (!geo || !statKec) return;
+
+                const isTerpilih = (filterKec === namaKec);
+                const adaFilterLain = (filterKec !== 'ALL' && !isTerpilih);
+
+                const warnaDasar = state.modeWarnaPeta === 'distingtif'
+                    ? geo.warna
+                    : dapatkanWarnaGradasi(statKec.total, minTotalKec, maxTotalKec);
+
+                const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                pathEl.setAttribute('d', geo.path);
+                pathEl.setAttribute('fill', warnaDasar);
+                pathEl.setAttribute('fill-opacity', isModeDesa ? (adaFilterLain ? '0.18' : '0.32') : (adaFilterLain ? '0.30' : '0.88'));
+                pathEl.setAttribute('stroke', isTerpilih ? '#0f172a' : '#ffffff');
+                pathEl.setAttribute('stroke-width', isTerpilih ? '3' : '1.8');
+                pathEl.setAttribute('class', `map-polygon ${isTerpilih ? 'map-polygon-active' : ''}`);
+
+                const titleEl = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                titleEl.textContent = `Kecamatan ${namaKec} — Total Pemilih: ${formatAngka(statKec.total)} (L: ${formatAngka(statKec.laki)}, P: ${formatAngka(statKec.perempuan)})`;
+                pathEl.appendChild(titleEl);
+
+                pathEl.addEventListener('click', () => klikWilayahDiPeta(namaKec, null));
+                layerKecamatan.appendChild(pathEl);
+
+                if (isModeDesa && geo.boxDesa) {
+                    const daftarDesa = statKec.desaList;
+                    const jumlahDesa = daftarDesa.length;
+                    const kolom = Math.ceil(Math.sqrt(jumlahDesa));
+                    const baris = Math.ceil(jumlahDesa / kolom);
+                    const cellW = geo.boxDesa.w / kolom;
+                    const cellH = geo.boxDesa.h / baris;
+
+                    daftarDesa.forEach((dItem, idx) => {
+                        const r = Math.floor(idx / kolom);
+                        const c = idx % kolom;
+                        const cx = geo.boxDesa.x + c * cellW;
+                        const cy = geo.boxDesa.y + r * cellH;
+
+                        const isDesaAktif = state.desaTerpilih &&
+                            state.desaTerpilih.kecamatan === namaKec &&
+                            state.desaTerpilih.desa === dItem.nama;
+
+                        const adaDesaLainAktif = state.desaTerpilih && !isDesaAktif;
+
+                        const fillDesa = state.modeWarnaPeta === 'distingtif'
+                            ? dItem.warnaDesa
+                            : dapatkanWarnaGradasi(dItem.total, minTotalDesa, maxTotalDesa);
+
+                        const rectDesa = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        rectDesa.setAttribute('x', (cx + 1).toFixed(1));
+                        rectDesa.setAttribute('y', (cy + 1).toFixed(1));
+                        rectDesa.setAttribute('width', Math.max(4, cellW - 2).toFixed(1));
+                        rectDesa.setAttribute('height', Math.max(4, cellH - 2).toFixed(1));
+                        rectDesa.setAttribute('rx', '2.5');
+                        rectDesa.setAttribute('fill', fillDesa);
+                        rectDesa.setAttribute('fill-opacity', isDesaAktif ? '1' : (adaFilterLain || adaDesaLainAktif ? '0.32' : '0.92'));
+                        rectDesa.setAttribute('stroke', isDesaAktif ? '#0f172a' : '#ffffff');
+                        rectDesa.setAttribute('stroke-width', isDesaAktif ? '2.2' : '0.9');
+                        rectDesa.setAttribute('class', `desa-cell ${isDesaAktif ? 'desa-cell-active pulse-highlight' : ''}`);
+
+                        const titleDesa = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                        titleDesa.textContent = `${dItem.status} ${dItem.nama} (Kec. ${namaKec}) — Total: ${formatAngka(dItem.total)} (L: ${formatAngka(dItem.laki)}, P: ${formatAngka(dItem.perempuan)})`;
+                        rectDesa.appendChild(titleDesa);
+
+                        rectDesa.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            klikWilayahDiPeta(namaKec, dItem.nama);
+                        });
+                        layerDesa.appendChild(rectDesa);
+                    });
+                }
+
+                const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                textEl.setAttribute('x', geo.labelX);
+                textEl.setAttribute('y', isModeDesa ? geo.boxDesa.y - 4 : geo.labelY);
+                textEl.setAttribute('text-anchor', 'middle');
+                textEl.setAttribute('font-size', isModeDesa ? '10' : '11.5');
+                textEl.setAttribute('font-weight', '800');
+                textEl.setAttribute('fill', isModeDesa ? '#0f172a' : '#ffffff');
+                textEl.setAttribute('stroke', isModeDesa ? '#ffffff' : 'rgba(15,23,42,0.55)');
+                textEl.setAttribute('stroke-width', isModeDesa ? '2.5' : '2.2');
+                textEl.setAttribute('paint-order', 'stroke');
+                textEl.textContent = namaKec;
+                layerLabel.appendChild(textEl);
+
+                const chipEl = document.getElementById(`chip-kec-${namaKec}`);
+                if (chipEl) {
+                    if (isTerpilih) {
+                        chipEl.className = "flex items-center gap-2 px-2.5 py-2 rounded-xl border-2 border-slate-900 bg-slate-900 text-white text-left text-xs font-bold transition cursor-pointer shadow-sm";
+                    } else {
+                        chipEl.className = "flex items-center gap-2 px-2.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-left text-xs font-semibold text-slate-700 transition cursor-pointer shadow-2xs";
+                    }
+                }
+            });
+
+            if (state.modeWarnaPeta === 'distingtif') {
+                legendaPeta.innerHTML = `
+                    <span class="font-semibold text-slate-700">Legenda: ${isModeDesa ? 'Setiap desa/kelurahan memiliki warna berbeda di dalam poligon kecamatan.' : 'Setiap kecamatan memiliki warna identitas berbeda.'}</span>
+                    <span>Klik wilayah untuk fokus angka</span>
+                `;
+            } else {
+                legendaPeta.innerHTML = `
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="font-semibold text-slate-700">Intensitas Pemilih:</span>
+                        <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-xs bg-[#fbbf24] inline-block"></span>Moderat</span>
+                        <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-xs bg-[#f59e0b] inline-block"></span>Sedang</span>
+                        <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-xs bg-[#ea580c] inline-block"></span>Tinggi</span>
+                        <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-xs bg-[#991b1b] inline-block"></span>Sangat Tinggi</span>
+                    </div>
+                `;
+            }
+
+            perbaruiKartuDetailWilayah(rekapKecamatan, filterKec);
+        }
+
+        function perbaruiKartuDetailWilayah(rekapKecamatan, filterKec) {
+            const badgeTingkat = document.getElementById('detail-badge-tingkat');
+            const namaWilayah = document.getElementById('detail-nama-wilayah');
+            const subWilayah = document.getElementById('detail-sub-wilayah');
+            const indikatorWarna = document.getElementById('detail-indikator-warna');
+            const elLaki = document.getElementById('detail-laki');
+            const elPerempuan = document.getElementById('detail-perempuan');
+            const elTotal = document.getElementById('detail-total');
+
+            if (state.desaTerpilih && rekapKecamatan[state.desaTerpilih.kecamatan]) {
+                const kecData = rekapKecamatan[state.desaTerpilih.kecamatan];
+                const desaData = kecData.desaList.find(d => d.nama === state.desaTerpilih.desa);
+                if (desaData) {
+                    badgeTingkat.textContent = `${desaData.status} Terpilih`;
+                    namaWilayah.textContent = `${desaData.status} ${desaData.nama}`;
+                    subWilayah.textContent = `Kecamatan ${kecData.kecamatan}, Kabupaten Sukoharjo`;
+                    indikatorWarna.style.backgroundColor = desaData.warnaDesa;
+                    elLaki.textContent = formatAngka(desaData.laki);
+                    elPerempuan.textContent = formatAngka(desaData.perempuan);
+                    elTotal.textContent = formatAngka(desaData.total);
+                    return;
+                }
+            }
+
+            if (filterKec !== 'ALL' && rekapKecamatan[filterKec]) {
+                const kecData = rekapKecamatan[filterKec];
+                const geo = GEOMETRI_KECAMATAN_SUKOHARJO[filterKec];
+                badgeTingkat.textContent = 'Kecamatan Terpilih';
+                namaWilayah.textContent = `Kecamatan ${kecData.kecamatan}`;
+                subWilayah.textContent = `Mencakup ${kecData.desaList.length} Desa / Kelurahan`;
+                indikatorWarna.style.backgroundColor = geo ? geo.warna : '#dc2626';
+                elLaki.textContent = formatAngka(kecData.laki);
+                elPerempuan.textContent = formatAngka(kecData.perempuan);
+                elTotal.textContent = formatAngka(kecData.total);
+                return;
+            }
+
+            let totL = 0, totP = 0;
+            Object.values(rekapKecamatan).forEach(k => {
+                totL += k.laki;
+                totP += k.perempuan;
+            });
+
+            badgeTingkat.textContent = 'Seluruh Wilayah Kabupaten';
+            namaWilayah.textContent = 'Kabupaten Sukoharjo';
+            subWilayah.textContent = '12 Kecamatan • 167 Desa/Kelurahan';
+            indikatorWarna.style.backgroundColor = '#dc2626';
+            elLaki.textContent = formatAngka(totL);
+            elPerempuan.textContent = formatAngka(totP);
+            elTotal.textContent = formatAngka(totL + totP);
+        }
+
+        function perbaruiGrafik(data, infoKategori) {
+            const ctx = document.getElementById('grafikPemilih').getContext('2d');
+            const isModeDesa = state.tingkatWilayah === 'desa';
+
+            const dataGrafik = isModeDesa && data.length > 20
+                ? [...data].sort((a, b) => b.total - a.total).slice(0, 20)
+                : data;
+
+            document.getElementById('judul-grafik').textContent = isModeDesa
+                ? `Grafik Sebaran Pemilih Tingkat Desa/Kelurahan (${infoKategori.label})`
+                : `Grafik Sebaran Pemilih Tingkat Kecamatan (${infoKategori.label})`;
+
+            document.getElementById('badge-info-grafik').textContent = isModeDesa && data.length > 20
+                ? `Menampilkan 20 Terbesar dari ${data.length} Desa/Kel`
+                : `Menampilkan ${dataGrafik.length} Wilayah`;
+
+            const labels = dataGrafik.map(item =>
+                isModeDesa ? `${item.desa} (${item.kecamatan})` : item.kecamatan
+            );
+            const dataLaki = dataGrafik.map(item => item.laki);
+            const dataPerempuan = dataGrafik.map(item => item.perempuan);
+
+            if (state.chartInstance) {
+                state.chartInstance.destroy();
+            }
+
+            state.chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Pemilih Laki-Laki',
+                            data: dataLaki,
+                            backgroundColor: '#2563eb',
+                            borderRadius: 5,
+                            barPercentage: 0.75
+                        },
+                        {
+                            label: 'Pemilih Perempuan',
+                            data: dataPerempuan,
+                            backgroundColor: '#e11d48',
+                            borderRadius: 5,
+                            barPercentage: 0.75
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 8,
+                                font: { family: 'Inter', size: 12, weight: '600' }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            padding: 12,
+                            titleFont: { family: 'Inter', size: 13, weight: '700' },
+                            bodyFont: { family: 'Inter', size: 12 },
+                            callbacks: {
+                                afterBody: function(context) {
+                                    const l = context[0]?.parsed.y || 0;
+                                    const p = context[1]?.parsed.y || 0;
+                                    return `Total Pemilih: ${formatAngka(l + p)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                font: { family: 'Inter', size: 11 },
+                                maxRotation: 45,
+                                minRotation: 0
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' },
+                            ticks: {
+                                font: { family: 'Inter', size: 11 },
+                                callback: (val) => formatAngka(val)
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function perbaruiTabel(data, sumLaki, sumPerempuan, sumTotal) {
+            const isModeDesa = state.tingkatWilayah === 'desa';
+            const kolomDesaHeader = document.getElementById('kolom-desa-header');
+            const footerColspan = document.getElementById('footer-colspan');
+            const tbody = document.getElementById('isi-tabel-pemilih');
+
+            if (isModeDesa) {
+                kolomDesaHeader.classList.remove('hidden');
+                footerColspan.setAttribute('colspan', '3');
+                document.getElementById('judul-tabel').textContent = 'Rincian Data Pemilih Tingkat Desa / Kelurahan';
+            } else {
+                kolomDesaHeader.classList.add('hidden');
+                footerColspan.setAttribute('colspan', '2');
+                document.getElementById('judul-tabel').textContent = 'Rincian Data Pemilih Tingkat Kecamatan';
+            }
+
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="${isModeDesa ? 7 : 6}" class="py-10 px-4 text-center text-slate-500">
+                            Tidak ditemukan data wilayah yang sesuai dengan kata kunci pencarian Anda.
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('footer-laki').textContent = '0';
+                document.getElementById('footer-perempuan').textContent = '0';
+                document.getElementById('footer-total').textContent = '0';
+                return;
+            }
+
+            let htmlRows = '';
+            data.forEach((row, index) => {
+                const proporsi = sumTotal > 0 ? ((row.total / sumTotal) * 100).toFixed(2) : '0.00';
+                const geo = GEOMETRI_KECAMATAN_SUKOHARJO[row.kecamatan];
+                const warnaKec = geo ? geo.warna : '#64748b';
+                const badgeStatus = row.status === 'Kelurahan'
+                    ? '<span class="ml-1.5 px-1.5 py-0.5 text-[10px] font-semibold rounded bg-amber-100 text-amber-800">Kel</span>'
+                    : '';
+
+                const isBarisAktif = isModeDesa
+                    ? (state.desaTerpilih && state.desaTerpilih.kecamatan === row.kecamatan && state.desaTerpilih.desa === row.desa)
+                    : (document.getElementById('filter-kecamatan').value === row.kecamatan);
+
+                const klikArgDesa = isModeDesa ? `'${row.desa.replace(/'/g, "\\'")}'` : 'null';
+
+                htmlRows += `
+                    <tr onclick="klikWilayahDiPeta('${row.kecamatan}', ${klikArgDesa})" class="${isBarisAktif ? 'bg-amber-50/90 font-semibold' : 'hover:bg-slate-50/90'} transition cursor-pointer" title="Klik untuk menyorot wilayah ini di peta">
+                        <td class="py-3 px-4 text-center text-slate-500 font-medium">${index + 1}</td>
+                        <td class="py-3 px-4 font-semibold text-slate-800">
+                            <span class="inline-flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${warnaKec}"></span>
+                                <span>${row.kecamatan}</span>
+                            </span>
+                        </td>
+                        ${isModeDesa ? `<td class="py-3 px-4 font-medium text-slate-700"><span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-xs shrink-0" style="background-color: ${row.warnaIdentitas}"></span><span>${row.desa}${badgeStatus}</span></span></td>` : ''}
+                        <td class="py-3 px-4 text-right font-medium text-blue-700 tabular-nums">${formatAngka(row.laki)}</td>
+                        <td class="py-3 px-4 text-right font-medium text-rose-700 tabular-nums">${formatAngka(row.perempuan)}</td>
+                        <td class="py-3 px-4 text-right font-bold text-slate-900 tabular-nums">${formatAngka(row.total)}</td>
+                        <td class="py-3 px-4 text-right text-slate-500 text-xs tabular-nums hidden sm:table-cell">${proporsi}%</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = htmlRows;
+            document.getElementById('footer-laki').textContent = formatAngka(sumLaki);
+            document.getElementById('footer-perempuan').textContent = formatAngka(sumPerempuan);
+            document.getElementById('footer-total').textContent = formatAngka(sumTotal);
+        }
+
+        function unduhCSV() {
+            const infoKategori = getInfoKategoriAktif();
+            const isModeDesa = state.tingkatWilayah === 'desa';
+            const data = state.dataTerfilterSaatIni;
+
+            if (!data || data.length === 0) {
+                tampilkanToast('Tidak ada data untuk diunduh.');
+                return;
+            }
+
+            let csvContent = '\uFEFF';
+            if (isModeDesa) {
+                csvContent += 'No;Kategori;Kecamatan;Desa/Kelurahan;Status;Laki-Laki;Perempuan;Total Pemilih\n';
+                data.forEach((row, idx) => {
+                    csvContent += `${idx + 1};"${infoKategori.label}";"${row.kecamatan}";"${row.desa}";"${row.status}";${row.laki};${row.perempuan};${row.total}\n`;
+                });
+            } else {
+                csvContent += 'No;Kategori;Kecamatan;Jumlah Desa/Kel;Laki-Laki;Perempuan;Total Pemilih\n';
+                data.forEach((row, idx) => {
+                    csvContent += `${idx + 1};"${infoKategori.label}";"${row.kecamatan}";${row.jumlahDesa};${row.laki};${row.perempuan};${row.total}\n`;
+                });
+            }
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const namaFile = `Data_Pemilih_Sukoharjo_${infoKategori.key}_${state.tingkatWilayah}.csv`;
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', namaFile);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            tampilkanToast(`Berhasil mengunduh ${namaFile}`);
+        }
+
+        function tampilkanToast(pesan) {
+            const toast = document.getElementById('toast-notifikasi');
+            document.getElementById('toast-pesan').textContent = pesan;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3200);
+        }
+
+        function bukaModalEditData() {
+            const infoKategori = getInfoKategoriAktif();
+            document.getElementById('modal-subjudul-periode').textContent = `Periode aktif: ${infoKategori.label}`;
+            const filterUtama = document.getElementById('filter-kecamatan').value;
+            if (filterUtama && filterUtama !== 'ALL') {
+                document.getElementById('edit-filter-kecamatan').value = filterUtama;
+            }
+            renderDaftarEditDesa();
+            document.getElementById('modal-edit-data').classList.remove('hidden');
+        }
+
+        function tutupModalEditData() {
+            document.getElementById('modal-edit-data').classList.add('hidden');
+            perbaruiTampilan();
+        }
+
+        function renderDaftarEditDesa() {
+            const infoKategori = getInfoKategoriAktif();
+            const namaKec = document.getElementById('edit-filter-kecamatan').value;
+            const kataCari = document.getElementById('edit-cari-desa').value.trim().toLowerCase();
+            const container = document.getElementById('daftar-input-edit-desa');
+
+            const kecObj = WILAYAH_SUKOHARJO.find(k => k.kecamatan === namaKec);
+            if (!kecObj) {
+                container.innerHTML = '';
+                return;
+            }
+
+            if (!DATA_PEMILIH_OVERRIDE[infoKategori.key]) {
+                DATA_PEMILIH_OVERRIDE[infoKategori.key] = {};
+            }
+            if (!DATA_PEMILIH_OVERRIDE[infoKategori.key][namaKec]) {
+                DATA_PEMILIH_OVERRIDE[infoKategori.key][namaKec] = {};
+            }
+
+            const overrideKec = DATA_PEMILIH_OVERRIDE[infoKategori.key][namaKec];
+            let html = '';
+
+            kecObj.desa.forEach((d, idx) => {
+                if (kataCari && !d.nama.toLowerCase().includes(kataCari)) {
+                    return;
+                }
+
+                const customDesa = overrideKec[d.nama];
+                const variasi = 1 + (((idx % 5) - 2) * 0.0012);
+                const nilaiL = customDesa && typeof customDesa.l === 'number'
+                    ? customDesa.l
+                    : Math.round(d.baseL * infoKategori.factor * variasi);
+                const nilaiP = customDesa && typeof customDesa.p === 'number'
+                    ? customDesa.p
+                    : Math.round(d.baseP * infoKategori.factor * variasi);
+                const totalDesa = nilaiL + nilaiP;
+
+                const safeKec = namaKec.replace(/'/g, "\\'");
+                const safeDesa = d.nama.replace(/'/g, "\\'");
+
+                html += `
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center bg-slate-50 hover:bg-slate-100/80 p-3 rounded-xl border border-slate-200">
+                        <div class="sm:col-span-5">
+                            <div class="font-bold text-xs sm:text-sm text-slate-800">${d.status} ${d.nama}</div>
+                            <div class="text-[11px] text-slate-500">Kec. ${namaKec}</div>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-[10px] font-bold uppercase text-blue-700 mb-0.5">Laki-Laki</label>
+                            <input type="number" min="0" step="1" value="${nilaiL}" oninput="simpanAngkaDesaEdit('${safeKec}', '${safeDesa}', 'l', this.value)" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs sm:text-sm font-semibold text-slate-900 tabular-nums focus:ring-2 focus:ring-blue-600 outline-none">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-[10px] font-bold uppercase text-rose-700 mb-0.5">Perempuan</label>
+                            <input type="number" min="0" step="1" value="${nilaiP}" oninput="simpanAngkaDesaEdit('${safeKec}', '${safeDesa}', 'p', this.value)" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs sm:text-sm font-semibold text-slate-900 tabular-nums focus:ring-2 focus:ring-rose-600 outline-none">
+                        </div>
+                        <div class="sm:col-span-3 sm:text-right">
+                            <span class="block text-[10px] font-bold uppercase text-slate-500">Total</span>
+                            <span id="edit-total-${namaKec}-${idx}" class="text-xs sm:text-sm font-extrabold text-slate-900 tabular-nums">${formatAngka(totalDesa)}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html || `<div class="text-center py-8 text-xs text-slate-500">Tidak ada desa/kelurahan yang cocok dengan pencarian.</div>`;
+        }
+
+        function simpanAngkaDesaEdit(namaKec, namaDesa, gender, nilaiInput) {
+            const infoKategori = getInfoKategoriAktif();
+            const kecObj = WILAYAH_SUKOHARJO.find(k => k.kecamatan === namaKec);
+            const idxDesa = kecObj ? kecObj.desa.findIndex(d => d.nama === namaDesa) : -1;
+            if (!kecObj || idxDesa < 0) return;
+
+            const d = kecObj.desa[idxDesa];
+            const variasi = 1 + (((idxDesa % 5) - 2) * 0.0012);
+
+            if (!DATA_PEMILIH_OVERRIDE[infoKategori.key]) {
+                DATA_PEMILIH_OVERRIDE[infoKategori.key] = {};
+            }
+            if (!DATA_PEMILIH_OVERRIDE[infoKategori.key][namaKec]) {
+                DATA_PEMILIH_OVERRIDE[infoKategori.key][namaKec] = {};
+            }
+
+            const eksisting = DATA_PEMILIH_OVERRIDE[infoKategori.key][namaKec][namaDesa] || {
+                l: Math.round(d.baseL * infoKategori.factor * variasi),
+                p: Math.round(d.baseP * infoKategori.factor * variasi)
+            };
+
+            const angkaBersih = Math.max(0, parseInt(nilaiInput, 10) || 0);
+            if (gender === 'l') {
+                eksisting.l = angkaBersih;
+            } else {
+                eksisting.p = angkaBersih;
+            }
+
+            DATA_PEMILIH_OVERRIDE[infoKategori.key][namaKec][namaDesa] = eksisting;
+
+            const elTotal = document.getElementById(`edit-total-${namaKec}-${idxDesa}`);
+            if (elTotal) {
+                elTotal.textContent = formatAngka(eksisting.l + eksisting.p);
+            }
+
+            perbaruiTampilan();
+        }
+
+        function resetAngkaPeriodeAktif() {
+            const infoKategori = getInfoKategoriAktif();
+            DATA_PEMILIH_OVERRIDE[infoKategori.key] = {};
+            renderDaftarEditDesa();
+            perbaruiTampilan();
+            tampilkanToast(`Angka ${infoKategori.label} dikembalikan ke nilai awal.`);
+        }
+
+        function imporCSV(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const teks = String(e.target.result || '').replace(/^\uFEFF/, '');
+                    const barisList = teks.split(/\r?\n/).filter(b => b.trim().length > 0);
+                    if (barisList.length < 2) {
+                        tampilkanToast('File CSV kosong atau tidak memiliki baris data.');
+                        return;
+                    }
+
+                    const pemisah = barisList[0].includes(';') ? ';' : ',';
+                    const header = barisList[0].split(pemisah).map(h => h.replace(/^"|"$/g, '').trim().toLowerCase());
+
+                    const idxKec = header.findIndex(h => h.includes('kecamatan'));
+                    const idxDesa = header.findIndex(h => h.includes('desa') || h.includes('kelurahan'));
+                    const idxL = header.findIndex(h => h.includes('laki'));
+                    const idxP = header.findIndex(h => h.includes('perempuan'));
+
+                    if (idxKec === -1 || idxDesa === -1 || idxL === -1 || idxP === -1) {
+                        tampilkanToast('Kolom CSV harus memuat Kecamatan, Desa/Kelurahan, Laki-Laki, dan Perempuan.');
+                        return;
+                    }
+
+                    const infoKategori = getInfoKategoriAktif();
+                    if (!DATA_PEMILIH_OVERRIDE[infoKategori.key]) {
+                        DATA_PEMILIH_OVERRIDE[infoKategori.key] = {};
+                    }
+
+                    let jumlahTerupdate = 0;
+                    for (let i = 1; i < barisList.length; i++) {
+                        const cols = barisList[i].split(pemisah).map(c => c.replace(/^"|"$/g, '').trim());
+                        const namaKec = cols[idxKec];
+                        const namaDesa = cols[idxDesa];
+                        const lVal = parseInt((cols[idxL] || '').replace(/[^\d-]/g, ''), 10);
+                        const pVal = parseInt((cols[idxP] || '').replace(/[^\d-]/g, ''), 10);
+
+                        if (!namaKec || !namaDesa || Number.isNaN(lVal) || Number.isNaN(pVal)) continue;
+
+                        const kecCocok = WILAYAH_SUKOHARJO.find(k => k.kecamatan.toLowerCase() === namaKec.toLowerCase());
+                        if (!kecCocok) continue;
+
+                        const desaCocok = kecCocok.desa.find(d => d.nama.toLowerCase() === namaDesa.toLowerCase());
+                        if (!desaCocok) continue;
+
+                        if (!DATA_PEMILIH_OVERRIDE[infoKategori.key][kecCocok.kecamatan]) {
+                            DATA_PEMILIH_OVERRIDE[infoKategori.key][kecCocok.kecamatan] = {};
+                        }
+                        DATA_PEMILIH_OVERRIDE[infoKategori.key][kecCocok.kecamatan][desaCocok.nama] = {
+                            l: Math.max(0, lVal),
+                            p: Math.max(0, pVal)
+                        };
+                        jumlahTerupdate++;
+                    }
+
+                    perbaruiTampilan();
+                    tampilkanToast(`Berhasil mengimpor ${jumlahTerupdate} data desa/kelurahan untuk ${infoKategori.label}.`);
+                } catch (err) {
+                    tampilkanToast('Gagal membaca file CSV.');
+                } finally {
+                    event.target.value = '';
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        // =========================================================================
+        // LOGIKA MENU 4: OPINI SEPUTAR DATA DAN INFORMASI
+        // =========================================================================
+        function muatOpiniDariStorage() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY_OPINI);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        state.daftarOpini = parsed;
+                        state.opiniTerpilihId = parsed[0].id;
+                        return;
+                    }
+                }
+            } catch (e) {
+                // Abaikan error penyimpanan lokal dan gunakan opini bawaan
+            }
+            state.daftarOpini = [...OPINI_BAWAAN];
+            state.opiniTerpilihId = OPINI_BAWAAN[0]?.id || null;
+        }
+
+        function simpanOpiniKeStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY_OPINI, JSON.stringify(state.daftarOpini));
+            } catch (e) {
+                tampilkanToast('Peringatan: gagal menyimpan ke penyimpanan lokal browser.');
+            }
+        }
+
+        function pilihTopikOpini(topik) {
+            state.topikOpiniAktif = topik;
+            document.querySelectorAll('.btn-topik-opini').forEach(btn => {
+                if (btn.getAttribute('data-topik') === topik) {
+                    btn.className = "btn-topik-opini px-3 py-1.5 rounded-xl text-xs font-bold bg-red-700 text-white transition cursor-pointer";
+                } else {
+                    btn.className = "btn-topik-opini px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer";
+                }
+            });
+            renderDaftarOpini();
+        }
+
+        function renderDaftarOpini() {
+            const container = document.getElementById('daftar-kartu-opini');
+            const kataCari = (document.getElementById('cari-opini')?.value || '').trim().toLowerCase();
+
+            const tersaring = state.daftarOpini.filter(item => {
+                const cocokTopik = state.topikOpiniAktif === 'ALL' || item.topik === state.topikOpiniAktif;
+                const cocokCari = !kataCari ||
+                    item.judul.toLowerCase().includes(kataCari) ||
+                    item.penulis.toLowerCase().includes(kataCari) ||
+                    item.ringkasan.toLowerCase().includes(kataCari) ||
+                    item.isi.toLowerCase().includes(kataCari);
+                return cocokTopik && cocokCari;
+            });
+
+            if (tersaring.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-2xl border border-slate-200 p-8 text-center text-xs sm:text-sm text-slate-500">
+                        Tidak ada opini yang sesuai dengan filter atau kata kunci pencarian.
+                    </div>
+                `;
+                renderPembacaOpini(null);
+                return;
+            }
+
+            if (!tersaring.some(item => item.id === state.opiniTerpilihId)) {
+                state.opiniTerpilihId = tersaring[0].id;
+            }
+
+            container.innerHTML = tersaring.map(item => {
+                const isAktif = item.id === state.opiniTerpilihId;
+                return `
+                    <article onclick="pilihOpiniUntukDibaca('${item.id}')" class="bg-white rounded-2xl p-5 border transition cursor-pointer ${isAktif ? 'border-red-600 ring-2 ring-red-600/15 shadow-sm' : 'border-slate-200 hover:border-slate-300 shadow-2xs'}">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900">${escapeHTML(item.topik)}</span>
+                            <span class="text-xs text-slate-500">${escapeHTML(item.tanggal)} &bull; ${escapeHTML(item.penulis)}</span>
+                        </div>
+                        <h3 class="text-base font-extrabold text-slate-900 leading-snug">${escapeHTML(item.judul)}</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">${escapeHTML(item.ringkasan)}</p>
+                        <div class="mt-3 text-xs font-bold text-red-700">
+                            ${isAktif ? 'Sedang dibaca di panel samping →' : 'Baca selengkapnya →'}
+                        </div>
+                    </article>
+                `;
+            }).join('');
+
+            const opiniAktif = tersaring.find(item => item.id === state.opiniTerpilihId) || tersaring[0];
+            renderPembacaOpini(opiniAktif);
+        }
+
+        function pilihOpiniUntukDibaca(id) {
+            state.opiniTerpilihId = id;
+            renderDaftarOpini();
+        }
+
+        function renderPembacaOpini(opini) {
+            const elTopik = document.getElementById('baca-opini-topik');
+            const elJudul = document.getElementById('baca-opini-judul');
+            const elMeta = document.getElementById('baca-opini-meta');
+            const elRingkasan = document.getElementById('baca-opini-ringkasan');
+            const elIsi = document.getElementById('baca-opini-isi');
+
+            if (!opini) {
+                elTopik.textContent = '-';
+                elJudul.textContent = 'Tidak ada opini ditampilkan';
+                elMeta.textContent = '';
+                elRingkasan.textContent = '';
+                elIsi.textContent = '';
+                return;
+            }
+
+            elTopik.textContent = opini.topik;
+            elJudul.textContent = opini.judul;
+            elMeta.innerHTML = `<span>Penulis: <strong>${escapeHTML(opini.penulis)}</strong></span><span>&bull;</span><span>Tanggal: <strong>${escapeHTML(opini.tanggal)}</strong></span>`;
+            elRingkasan.textContent = opini.ringkasan;
+            elIsi.textContent = opini.isi;
+        }
+
+        function simpanOpiniBaru(event) {
+            event.preventDefault();
+            const judul = document.getElementById('opini-judul').value.trim();
+            const penulis = document.getElementById('opini-penulis').value.trim();
+            const tanggal = document.getElementById('opini-tanggal').value;
+            const topik = document.getElementById('opini-topik').value;
+            const ringkasan = document.getElementById('opini-ringkasan').value.trim();
+            const isi = document.getElementById('opini-isi').value.trim();
+
+            if (!judul || !penulis || !tanggal || !topik || !ringkasan || !isi) {
+                tampilkanToast('Mohon lengkapi seluruh kolom opini.');
+                return;
+            }
+
+            const opiniBaru = {
+                id: `opini-${Date.now()}`,
+                judul,
+                penulis,
+                tanggal,
+                topik,
+                ringkasan,
+                isi
+            };
+
+            state.daftarOpini.unshift(opiniBaru);
+            state.opiniTerpilihId = opiniBaru.id;
+            simpanOpiniKeStorage();
+            document.getElementById('form-opini-baru').reset();
+            setTanggalDefaultOpini();
+            pilihTopikOpini('ALL');
+            tampilkanToast('Opini baru berhasil dipublikasikan ke daftar.');
+        }
+
+        function resetOpiniBawaan() {
+            state.daftarOpini = [...OPINI_BAWAAN];
+            state.opiniTerpilihId = OPINI_BAWAAN[0]?.id || null;
+            simpanOpiniKeStorage();
+            pilihTopikOpini('ALL');
+            tampilkanToast('Daftar opini dikembalikan ke opini bawaan.');
+        }
+
+        function unduhOpiniJSON() {
+            const payload = JSON.stringify(state.daftarOpini, null, 2);
+            const blob = new Blob([payload], { type: 'application/json;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'opini_data_informasi_sukoharjo.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            tampilkanToast('Berhasil mengekspor opini ke berkas JSON.');
+        }
+
+        function imporOpiniJSON(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(String(e.target.result || ''));
+                    if (!Array.isArray(parsed) || parsed.length === 0) {
+                        tampilkanToast('Format berkas JSON opini tidak valid atau kosong.');
+                        return;
+                    }
+
+                    const tervalidasi = parsed
+                        .filter(item => item && item.judul && item.isi)
+                        .map((item, idx) => ({
+                            id: String(item.id || `opini-import-${Date.now()}-${idx}`),
+                            judul: String(item.judul),
+                            penulis: String(item.penulis || 'Kontributor'),
+                            tanggal: String(item.tanggal || new Date().toISOString().slice(0, 10)),
+                            topik: String(item.topik || 'Keterbukaan Informasi'),
+                            ringkasan: String(item.ringkasan || String(item.isi).slice(0, 140)),
+                            isi: String(item.isi)
+                        }));
+
+                    if (tervalidasi.length === 0) {
+                        tampilkanToast('Tidak ada entri opini valid di dalam berkas JSON.');
+                        return;
+                    }
+
+                    state.daftarOpini = tervalidasi;
+                    state.opiniTerpilihId = tervalidasi[0].id;
+                    simpanOpiniKeStorage();
+                    pilihTopikOpini('ALL');
+                    tampilkanToast(`Berhasil mengimpor ${tervalidasi.length} opini dari JSON.`);
+                } catch (err) {
+                    tampilkanToast('Gagal membaca berkas JSON opini.');
+                } finally {
+                    event.target.value = '';
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function setTanggalDefaultOpini() {
+            const elTgl = document.getElementById('opini-tanggal');
+            if (elTgl && !elTgl.value) {
+                elTgl.value = new Date().toISOString().slice(0, 10);
+            }
+        }
+
+        function escapeHTML(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // INISIALISASI SAAT HALAMAN SELESAI DIMUAT
+        window.addEventListener('DOMContentLoaded', () => {
+            inisialisasiFilterKecamatan();
+            muatOpiniDariStorage();
+            setTanggalDefaultOpini();
+            perbaruiTampilan();
+        });
+    </script>
+</body>
+</html>
